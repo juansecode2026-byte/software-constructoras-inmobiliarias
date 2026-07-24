@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { logout } from "@/app/login/actions";
 import { navegacion, proyectos } from "./data";
 
 const THEME_KEY = "erp-theme";
@@ -20,7 +21,13 @@ export function useProyecto() {
   return ctx;
 }
 
-export function ErpShell({ children }: { children: React.ReactNode }) {
+export function ErpShell({
+  children,
+  userEmail,
+}: {
+  children: React.ReactNode;
+  userEmail: string;
+}) {
   const pathname = usePathname();
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [proyectoActivo, setProyectoActivo] = useState(proyectos[0].nombre);
@@ -132,7 +139,7 @@ export function ErpShell({ children }: { children: React.ReactNode }) {
               )}
             </div>
             <span>
-              Usuario <b>Juanse</b>
+              Usuario <b>{userEmail}</b>
             </span>
             <span>
               Período <b>07/2026</b>
@@ -141,8 +148,14 @@ export function ErpShell({ children }: { children: React.ReactNode }) {
 
           <span className="erp-preview-badge">
             <span className="dot" />
-            Vista previa — sin datos ni backend reales
+            Vista previa — datos aún de ejemplo
           </span>
+
+          <form action={logout}>
+            <button type="submit" className="erp-btn ghost small">
+              Cerrar sesión
+            </button>
+          </form>
 
           <button
             type="button"

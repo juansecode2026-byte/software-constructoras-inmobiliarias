@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ErpShell } from "@/features/erp/ErpShell";
+import { createClient } from "@/lib/supabase/server";
 import "./erp.css";
 
 export const metadata: Metadata = {
@@ -7,6 +8,11 @@ export const metadata: Metadata = {
   description: "ERP para una constructora con varios proyectos propios: costos, presupuesto y agentes de IA.",
 };
 
-export default function ErpLayout({ children }: { children: React.ReactNode }) {
-  return <ErpShell>{children}</ErpShell>;
+export default async function ErpLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return <ErpShell userEmail={user?.email ?? "—"}>{children}</ErpShell>;
 }
