@@ -1,97 +1,72 @@
 import Link from "next/link";
-import { partidaDemo } from "@/features/erp/data";
-import { AgentCallout } from "@/features/erp/AgentCallout";
+import { listarAreasYPartidas } from "@/lib/supabase/presupuesto";
+import { formatoMoneda } from "@/features/erp/format";
 
-export default async function PartidaDetallePage({
+export default async function AreasDelPresupuestoPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  // Vista previa: siempre muestra la partida demo, sin importar el id.
-  const partida = { ...partidaDemo, numero: Number(id) || partidaDemo.numero };
+  const areas = await listarAreasYPartidas(id);
 
   return (
     <div className="erp-view">
       <div className="erp-view-head">
-        <h1>{partida.nombre}</h1>
+        <h1>Áreas y partidas</h1>
         <span className="erp-crumb">
-          <Link href="/erp/presupuesto">Presupuesto</Link> / Partida {partida.codigo}
+          <Link href="/erp/presupuesto">Presupuesto</Link>
         </span>
       </div>
 
-      <div className="erp-apu-head">
-        <div className="erp-apu-title">
-          <h2>Análisis de precio unitario</h2>
-          <span className="erp-apu-code">
-            Código {partida.codigo} · Unidad {partida.unidad} · Presupuesto N.º {partida.numero}
-          </span>
-        </div>
-        <div className="erp-totals-strip">
-          <div className="erp-tstat">
-            <div className="label">Suma V.U.</div>
-            <div className="value num">{partida.sumaVU}</div>
-          </div>
-          <div className="erp-tstat">
-            <div className="label">Imprevistos</div>
-            <div className="value num">{partida.imprevistos}</div>
-          </div>
-          <div className="erp-tstat">
-            <div className="label">Gastos generales</div>
-            <div className="value num">{partida.gastosGenerales}</div>
-          </div>
-          <div className="erp-tstat">
-            <div className="label">Utilidad</div>
-            <div className="value num">{partida.utilidad}</div>
-          </div>
-          <div className="erp-tstat">
-            <div className="label">Cantidad</div>
-            <div className="value num">{partida.cantidad}</div>
-          </div>
-          <div className="erp-tstat">
-            <div className="label">Total P.U.</div>
-            <div className="value total num">{partida.totalPU}</div>
-          </div>
-        </div>
-      </div>
-
-      <AgentCallout />
-
       <div className="erp-panel">
-        <div className="erp-panel-head">
-          <h3>Recursos de la partida</h3>
-          <span className="erp-crumb">{partida.recursos.length} líneas</span>
-        </div>
         <div className="erp-table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Tipo</th>
-                <th>Código</th>
-                <th>Nombre</th>
+                <th>Área</th>
+                <th>Partida</th>
                 <th>Unidad</th>
-                <th className="num">Rend.</th>
                 <th className="num">Cantidad</th>
-                <th className="num">P. Unit.</th>
-                <th className="num">Valor Unit.</th>
+                <th className="num">Total P.U.</th>
               </tr>
             </thead>
             <tbody>
-              {partida.recursos.map((recurso) => (
-                <tr key={recurso.codigo} className={recurso.sugeridoPorAgente ? "suggested" : undefined}>
-                  <td>{recurso.tipo}</td>
-                  <td className="mono">{recurso.codigo}</td>
-                  <td>
-                    {recurso.nombre}
-                    {recurso.sugeridoPorAgente && <span className="erp-tag-agent">agente</span>}
+              {areas.flatMap((area) =>
+                area.partidas.length > 0 ? (
+                  area.partidas.map((p) => (
+                    <tr key={p.presupuestoPartidaId}>
+                      <td>
+                        {area.codigo} · {area.nombre}
+                      </td>
+                      <td>
+                        <Link href={`/erp/presupuesto/${id}/partida/${p.presupuestoPartidaId}`}>
+                          {p.partida.nombre}
+                        </Link>
+                      </td>
+                      <td>{p.partida.unidad}</td>
+                      <td className="num">{p.cantidad}</td>
+                      <td className="num">{formatoMoneda(p.cantidad * p.precioUnitarioTotal)}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr key={area.id}>
+                    <td>
+                      {area.codigo} · {area.nombre}
+                    </td>
+                    <td colSpan={4} style={{ color: "var(--ink-soft)" }}>
+                      sin partidas cargadas
+                    </td>
+                  </tr>
+                ),
+              )}
+              {areas.length === 0 && (
+                <tr>
+                  <td colSpan={5} style={{ color: "var(--ink-soft)" }}>
+                    Este presupuesto todavía no tiene áreas cargadas.
                   </td>
-                  <td>{recurso.unidad}</td>
-                  <td className="num">{recurso.rendimiento}</td>
-                  <td className="num">{recurso.cantidad}</td>
-                  <td className="num">{recurso.precioUnit}</td>
-                  <td className="num">{recurso.valorUnit}</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

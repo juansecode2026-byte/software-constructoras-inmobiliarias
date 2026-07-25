@@ -1,7 +1,11 @@
 import { avancePorArea, insightsAgente, kpisInicio } from "@/features/erp/data";
 import { ProjectCards } from "@/features/erp/ProjectCards";
+import { listarObras, obtenerEmpresaId } from "@/lib/supabase/presupuesto";
 
-export default function InicioPage() {
+export default async function InicioPage() {
+  const empresaId = await obtenerEmpresaId();
+  const obras = await listarObras(empresaId);
+
   return (
     <div className="erp-view">
       <div className="erp-view-head">
@@ -10,7 +14,7 @@ export default function InicioPage() {
       </div>
 
       <p className="erp-section-label">Tus proyectos</p>
-      <ProjectCards />
+      <ProjectCards obras={obras} />
 
       <p className="erp-section-label">Obra Miramar — detalle</p>
       <div className="erp-kpi-row">
@@ -25,6 +29,11 @@ export default function InicioPage() {
           </div>
         ))}
       </div>
+      <p className="erp-note">
+        Los proyectos de arriba ya son datos reales de Supabase. Los KPIs, el avance por área y los
+        insights de agente de aquí abajo siguen siendo ilustrativos — dependen de los módulos de
+        Costos Obra/Avance y de la capa de agentes, que todavía no se construyen.
+      </p>
 
       <div className="erp-grid-2">
         <div className="erp-panel">

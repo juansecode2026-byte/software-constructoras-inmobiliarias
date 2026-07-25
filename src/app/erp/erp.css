@@ -347,6 +347,17 @@
 .erp-crumb a:hover {
   color: var(--teal);
 }
+.erp table a {
+  color: var(--teal-deep);
+  text-decoration: none;
+  font-weight: 600;
+}
+.erp[data-theme="dark"] table a {
+  color: var(--teal);
+}
+.erp table a:hover {
+  text-decoration: underline;
+}
 .erp-section-label {
   font-size: 0.7rem;
   font-weight: 700;
@@ -354,6 +365,12 @@
   text-transform: uppercase;
   color: var(--ink-soft);
   margin: 0 0 0.7rem;
+}
+.erp-note {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin: 0.9rem 0 1.3rem;
+  max-width: 60ch;
 }
 
 /* ---------- tarjetas de proyecto ---------- */

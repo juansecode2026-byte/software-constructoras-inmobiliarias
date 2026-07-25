@@ -1,37 +1,31 @@
 "use client";
 
-import { proyectos } from "./data";
+import type { ObraFila } from "@/lib/supabase/presupuesto";
+import { estadoObraClase, estadoObraLabel, formatoMoneda } from "./format";
 import { useProyecto } from "./ErpShell";
 
-export function ProjectCards() {
+export function ProjectCards({ obras }: { obras: ObraFila[] }) {
   const { proyectoActivo, setProyectoActivo } = useProyecto();
 
   return (
     <>
       <div className="erp-project-grid">
-        {proyectos.map((p) => (
+        {obras.map((o) => (
           <button
-            key={p.id}
+            key={o.id}
             type="button"
-            className={`erp-project-card${p.nombre === proyectoActivo ? " is-active" : ""}`}
-            onClick={() => setProyectoActivo(p.nombre)}
+            className={`erp-project-card${o.nombre === proyectoActivo ? " is-active" : ""}`}
+            onClick={() => setProyectoActivo(o.nombre)}
           >
             <div className="prow">
-              <h4>{p.nombre}</h4>
-              <span className={`erp-pill ${p.estado === "En ejecución" ? "ejecucion" : "plan"}`}>
-                {p.estado}
-              </span>
-            </div>
-            <div className="erp-stat-line">
-              <span>Avance</span>
-              <b className="num">{p.avancePct !== null ? `${p.avancePct}%` : "—"}</b>
-            </div>
-            <div className="erp-track">
-              <div className="erp-fill" style={{ width: `${p.avancePct ?? 0}%` }} />
+              <h4>{o.nombre}</h4>
+              <span className={`erp-pill ${estadoObraClase(o.estado)}`}>{estadoObraLabel(o.estado)}</span>
             </div>
             <div className="erp-stat-line">
               <span>Presupuesto</span>
-              <b className="num">{p.presupuesto ?? "por definir"}</b>
+              <b className="num">
+                {o.presupuestoTotal !== null ? formatoMoneda(o.presupuestoTotal) : "por definir"}
+              </b>
             </div>
           </button>
         ))}

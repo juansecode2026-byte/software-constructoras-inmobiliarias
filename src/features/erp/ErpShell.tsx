@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { logout } from "@/app/login/actions";
-import { navegacion, proyectos } from "./data";
+import type { ObraFila } from "@/lib/supabase/presupuesto";
+import { estadoObraLabel } from "./format";
+import { navegacion } from "./data";
 
 const THEME_KEY = "erp-theme";
 
@@ -24,13 +26,15 @@ export function useProyecto() {
 export function ErpShell({
   children,
   userEmail,
+  obras,
 }: {
   children: React.ReactNode;
   userEmail: string;
+  obras: ObraFila[];
 }) {
   const pathname = usePathname();
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [proyectoActivo, setProyectoActivo] = useState(proyectos[0].nombre);
+  const [proyectoActivo, setProyectoActivo] = useState(obras[0]?.nombre ?? "");
   const [menuAbierto, setMenuAbierto] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -119,20 +123,18 @@ export function ErpShell({
               </button>
               {menuAbierto && (
                 <div className="erp-proj-menu">
-                  {proyectos.map((p) => (
+                  {obras.map((o) => (
                     <button
-                      key={p.id}
+                      key={o.id}
                       type="button"
-                      className={`erp-proj-opt${p.nombre === proyectoActivo ? " is-active" : ""}`}
+                      className={`erp-proj-opt${o.nombre === proyectoActivo ? " is-active" : ""}`}
                       onClick={() => {
-                        setProyectoActivo(p.nombre);
+                        setProyectoActivo(o.nombre);
                         setMenuAbierto(false);
                       }}
                     >
-                      {p.nombre}
-                      <span className="erp-proj-meta">
-                        {p.avancePct !== null ? `${p.avancePct}% avance` : "en planificación"}
-                      </span>
+                      {o.nombre}
+                      <span className="erp-proj-meta">{estadoObraLabel(o.estado)}</span>
                     </button>
                   ))}
                 </div>

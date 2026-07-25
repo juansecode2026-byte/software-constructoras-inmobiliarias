@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 
-export function AgentCallout() {
+export function AgentCallout({
+  recursoNombre,
+  ahorroPct,
+  proveedoresComparados,
+}: {
+  recursoNombre: string;
+  ahorroPct?: number;
+  proveedoresComparados?: number;
+}) {
   const [aplicado, setAplicado] = useState(false);
 
   return (
@@ -10,10 +18,14 @@ export function AgentCallout() {
       <span className="erp-agent-badge">$</span>
       <div>
         <p>
-          El agente de compras encontró <b>Espejo 650×900×2</b> un 12% más barato con un proveedor de
-          la misma región.
+          El agente de compras encontró <b>{recursoNombre}</b> más barato con un proveedor
+          alternativo{ahorroPct !== undefined ? ` (${ahorroPct}% de ahorro)` : ""}.
         </p>
-        <div className="meta">Comparación entre 4 proveedores homologados · jurisdicción local</div>
+        <div className="meta">
+          {proveedoresComparados !== undefined
+            ? `Comparación entre ${proveedoresComparados} proveedores homologados`
+            : "Sugerencia del agente de compras"}
+        </div>
       </div>
       <button
         type="button"
