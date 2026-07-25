@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CRM Mobiliaria | Inteligencia para vender más rápido",
-  description: "Plataforma inteligente para constructoras e inmobiliarias con pipeline, analítica y agentes de IA.",
+  title: "Constructora Andes | ERP a la medida",
+  description: "ERP a la medida para constructoras e inmobiliarias: control de costos, presupuesto por partida y agentes de IA.",
 };
 
 export default function RootLayout({
