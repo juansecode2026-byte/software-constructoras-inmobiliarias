@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { login } from "./actions";
 import "./login.css";
 
@@ -31,6 +32,10 @@ export default async function LoginPage({
             Entrar
           </button>
         </form>
+
+        <Link href="/login/forgot" className="login-back">
+          ¿Olvidaste tu contraseña?
+        </Link>
       </div>
     </main>
   );

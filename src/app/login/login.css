@@ -50,14 +50,14 @@
   background: #fafbfc;
 }
 .login-field input:focus-visible {
-  outline: 2px solid #0f766e;
+  outline: 2px solid #2563eb;
   outline-offset: 1px;
 }
 .login-submit {
   font: inherit;
   font-weight: 600;
   color: #ffffff;
-  background: #0f766e;
+  background: #2563eb;
   border: none;
   border-radius: 8px;
   padding: 0.6rem 1rem;
@@ -74,4 +74,21 @@
   border: 1px solid #b3261e;
   border-radius: 8px;
   padding: 0.55rem 0.7rem;
+}
+.login-hint {
+  font-size: 0.85rem;
+  color: #39435a;
+  margin-top: 1.25rem;
+  line-height: 1.5;
+}
+.login-back {
+  display: block;
+  margin-top: 1.25rem;
+  font-size: 0.8rem;
+  color: #2563eb;
+  text-decoration: none;
+  text-align: center;
+}
+.login-back:hover {
+  text-decoration: underline;
 }
