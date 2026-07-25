@@ -294,6 +294,31 @@
   flex: none;
 }
 
+.erp-logout-btn {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 100px;
+  padding: 0.32rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+.erp-logout-btn:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+.erp-logout-btn svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+
 /* ---------- vistas ---------- */
 .erp-view {
   padding: 1.6rem 1.8rem 3rem;
