@@ -6,6 +6,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { logout } from "@/app/login/actions";
 import type { ObraFila } from "@/lib/supabase/presupuesto";
 import { estadoObraLabel } from "./format";
+import { IdleTimeout } from "./IdleTimeout";
 import { navegacion } from "./data";
 
 const THEME_KEY = "erp-theme";
@@ -67,6 +68,7 @@ export function ErpShell({
 
   return (
     <ProyectoContext.Provider value={{ proyectoActivo, setProyectoActivo }}>
+    <IdleTimeout />
     <div className="erp" data-theme={theme}>
       <aside className="erp-sidebar">
         <div className="erp-brand">
