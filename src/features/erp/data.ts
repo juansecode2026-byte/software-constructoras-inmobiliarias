@@ -70,5 +70,13 @@ export const navegacion: GrupoNav[] = [
     ],
   },
   { titulo: "Comercial", items: [{ nombre: "Venta inmobiliaria" }, { nombre: "Ventas web" }] },
-  { titulo: "Administración", items: [{ nombre: "Usuarios y permisos" }, { nombre: "Personas" }, { nombre: "Recursos" }] },
+  {
+    titulo: "Configuraciones básicas",
+    items: [
+      { nombre: "Empresa", href: "/erp/empresa" },
+      { nombre: "Opciones", href: "/erp/opciones" },
+      { nombre: "Personas", href: "/erp/personas" },
+      { nombre: "Recursos", href: "/erp/recursos" },
+    ],
+  },
 ];
