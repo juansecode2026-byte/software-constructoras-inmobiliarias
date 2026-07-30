@@ -821,6 +821,127 @@
   flex: none;
 }
 
+/* ---------- formularios editables ---------- */
+.erp .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.9rem 1.1rem;
+}
+@media (max-width: 760px) {
+  .erp .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.erp .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.erp .field.span-2 {
+  grid-column: span 2;
+}
+@media (max-width: 760px) {
+  .erp .field.span-2 {
+    grid-column: span 1;
+  }
+}
+.erp .field label {
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--ink-soft);
+}
+.erp .field input[type="text"],
+.erp .field input[type="email"],
+.erp .field input[type="file"],
+.erp .field select,
+.erp .field textarea {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 7px;
+  border: 1px solid var(--line-strong);
+  background: var(--paper);
+  color: var(--ink);
+  width: 100%;
+}
+.erp .field textarea {
+  resize: vertical;
+  min-height: 3.4rem;
+}
+.erp .field input:focus-visible,
+.erp .field select:focus-visible,
+.erp .field textarea:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 1px;
+}
+.erp .field .hint {
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+}
+.erp-panel-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.9rem;
+  padding: 0.8rem 1.1rem;
+  border-top: 1px solid var(--line);
+  background: var(--surface-2);
+  flex-wrap: wrap;
+}
+.erp-aviso {
+  margin: 0;
+  margin-right: auto;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.erp-aviso.ok {
+  color: var(--teal);
+}
+.erp-aviso.error {
+  color: var(--danger);
+}
+.erp-firma-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+.erp-firma-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.9rem;
+  margin-bottom: 1rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: 9px;
+  background: var(--surface-2);
+}
+.erp-firma-preview img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ---------- arbol del presupuesto (area > grupo > partida) ---------- */
+.erp tr.arbol-area td {
+  background: var(--surface-2);
+  font-weight: 650;
+}
+.erp tr.arbol-grupo td,
+.erp tr.arbol-titulo td {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.erp tr.arbol-titulo td {
+  font-style: italic;
+}
+.erp td.arbol-tipo {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+}
+
 /* ---------- configuraciones basicas ---------- */
 .erp-dato-grid {
   display: grid;

@@ -137,8 +137,54 @@ export async function listarCarpetas(obraId: string): Promise<CarpetaFila[]> {
   return data;
 }
 
+export interface PresupuestoDetalle {
+  id: string;
+  numero: number;
+  nombre: string;
+  estado: "en_proceso" | "aprobado";
+  vigente: boolean;
+  descripcion: string | null;
+  categoria: string | null;
+  pie_firma: string | null;
+  imprevistos_pct: number;
+  gastos_generales_pct: number;
+  utilidad_pct: number;
+  iva_pct: number;
+  credito_iva_pct: number;
+  incluir_pct_en_pu: boolean;
+  cliente: { nombre_legal: string | null; nombre_comercial: string | null } | null;
+}
+
+export async function obtenerPresupuestoDetalle(presupuestoId: string): Promise<PresupuestoDetalle> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("presupuestos")
+    .select(
+      `id, numero, nombre, estado, vigente, descripcion, categoria, pie_firma,
+       imprevistos_pct, gastos_generales_pct, utilidad_pct, iva_pct, credito_iva_pct,
+       incluir_pct_en_pu,
+       cliente:personas ( nombre_legal, nombre_comercial )`,
+    )
+    .eq("id", presupuestoId)
+    .single();
+
+  if (error) throw error;
+  return data as unknown as PresupuestoDetalle;
+}
+
+export interface GrupoFila {
+  id: string;
+  parent_id: string | null;
+  tipo: "grupo" | "titulo";
+  codigo: string | null;
+  item: string | null;
+  nombre: string;
+  orden: number;
+}
+
 export interface PartidaEnAreaFila {
   presupuestoPartidaId: string;
+  grupoId: string | null;
   cantidad: number;
   precioUnitarioTotal: number;
   partida: { codigo: string; nombre: string; unidad: string };
@@ -148,6 +194,10 @@ export interface AreaConPartidas {
   id: string;
   codigo: string;
   nombre: string;
+  item: string | null;
+  unidad: string;
+  cantidad: number;
+  grupos: GrupoFila[];
   partidas: PartidaEnAreaFila[];
 }
 
@@ -156,9 +206,10 @@ export async function listarAreasYPartidas(presupuestoId: string): Promise<AreaC
   const { data, error } = await supabase
     .from("areas")
     .select(
-      `id, codigo, nombre,
+      `id, codigo, nombre, item, unidad, cantidad,
+       grupos:presupuesto_grupos ( id, parent_id, tipo, codigo, item, nombre, orden ),
        presupuesto_partidas (
-         id, cantidad, precio_unitario_total,
+         id, grupo_id, cantidad, precio_unitario_total,
          partida:partidas ( codigo, nombre, unidad )
        )`,
     )
@@ -172,8 +223,13 @@ export async function listarAreasYPartidas(presupuestoId: string): Promise<AreaC
       id: string;
       codigo: string;
       nombre: string;
+      item: string | null;
+      unidad: string;
+      cantidad: number;
+      grupos: GrupoFila[];
       presupuesto_partidas: {
         id: string;
+        grupo_id: string | null;
         cantidad: number;
         precio_unitario_total: number;
         partida: { codigo: string; nombre: string; unidad: string };
@@ -183,8 +239,13 @@ export async function listarAreasYPartidas(presupuestoId: string): Promise<AreaC
     id: a.id,
     codigo: a.codigo,
     nombre: a.nombre,
+    item: a.item,
+    unidad: a.unidad,
+    cantidad: Number(a.cantidad),
+    grupos: a.grupos.sort((x, y) => x.orden - y.orden),
     partidas: a.presupuesto_partidas.map((pp) => ({
       presupuestoPartidaId: pp.id,
+      grupoId: pp.grupo_id,
       cantidad: pp.cantidad,
       precioUnitarioTotal: pp.precio_unitario_total,
       partida: pp.partida,
@@ -197,8 +258,12 @@ export interface RecursoPartidaFila {
   nombre: string;
   tipo_costo: string;
   rendimiento: number;
+  factor: number;
   cantidad: number;
   precio_unitario: number;
+  porcentaje: number | null;
+  tipo_porcentaje: string | null;
+  comentario: string | null;
   sugerido_por_agente: boolean;
   agente_meta: Record<string, unknown> | null;
 }
@@ -209,6 +274,9 @@ export interface PresupuestoPartidaDetalle {
   imprevistos_pct: number;
   gastos_generales_pct: number;
   utilidad_pct: number;
+  imprevistos_manual: boolean;
+  gastos_generales_manual: boolean;
+  utilidad_manual: boolean;
   precio_unitario_total: number;
   partida: { codigo: string; nombre: string; unidad: string };
   recursos: RecursoPartidaFila[];
@@ -221,10 +289,13 @@ export async function obtenerPartidaDetalle(
   const { data, error } = await supabase
     .from("presupuesto_partidas")
     .select(
-      `id, cantidad, imprevistos_pct, gastos_generales_pct, utilidad_pct, precio_unitario_total,
+      `id, cantidad, imprevistos_pct, gastos_generales_pct, utilidad_pct,
+       imprevistos_manual, gastos_generales_manual, utilidad_manual, precio_unitario_total,
        partida:partidas ( codigo, nombre, unidad ),
        recursos:partida_recursos (
-         rendimiento, cantidad, precio_unitario, sugerido_por_agente, agente_meta,
+         rendimiento, factor, cantidad, precio_unitario, porcentaje, comentario,
+         sugerido_por_agente, agente_meta,
+         tipo_porcentaje:tipos_porcentaje ( nombre ),
          recurso:recursos ( codigo, nombre, tipo_costo )
        )`,
     )
@@ -232,5 +303,29 @@ export async function obtenerPartidaDetalle(
     .single();
 
   if (error) throw error;
-  return data as unknown as PresupuestoPartidaDetalle;
+
+  const bruto = data as unknown as Omit<PresupuestoPartidaDetalle, "recursos"> & {
+    recursos: (Omit<RecursoPartidaFila, "codigo" | "nombre" | "tipo_costo" | "tipo_porcentaje"> & {
+      tipo_porcentaje: { nombre: string } | null;
+      recurso: { codigo: string; nombre: string; tipo_costo: string };
+    })[];
+  };
+
+  return {
+    ...bruto,
+    recursos: bruto.recursos.map((r) => ({
+      codigo: r.recurso.codigo,
+      nombre: r.recurso.nombre,
+      tipo_costo: r.recurso.tipo_costo,
+      rendimiento: r.rendimiento,
+      factor: Number(r.factor),
+      cantidad: r.cantidad,
+      precio_unitario: r.precio_unitario,
+      porcentaje: r.porcentaje === null ? null : Number(r.porcentaje),
+      tipo_porcentaje: r.tipo_porcentaje?.nombre ?? null,
+      comentario: r.comentario,
+      sugerido_por_agente: r.sugerido_por_agente,
+      agente_meta: r.agente_meta,
+    })),
+  };
 }
