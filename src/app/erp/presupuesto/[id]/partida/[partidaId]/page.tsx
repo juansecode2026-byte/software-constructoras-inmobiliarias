@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { AgentCallout } from "@/features/erp/AgentCallout";
+import { IniciarPartida } from "@/features/erp/IniciarPartida";
 import { formatoMoneda } from "@/features/erp/format";
-import { obtenerPartidaDetalle } from "@/lib/supabase/presupuesto";
+import { obtenerEstadoInicioPartida, obtenerPartidaDetalle } from "@/lib/supabase/presupuesto";
+import { iniciarPartida } from "./actions";
 
 const TIPO_COSTO_LABEL: Record<string, string> = {
   material: "Material",
@@ -19,7 +21,10 @@ export default async function PartidaDetallePage({
   params: Promise<{ id: string; partidaId: string }>;
 }) {
   const { id, partidaId } = await params;
-  const partida = await obtenerPartidaDetalle(partidaId);
+  const [partida, estadoInicio] = await Promise.all([
+    obtenerPartidaDetalle(partidaId),
+    obtenerEstadoInicioPartida(partidaId),
+  ]);
   const sugerencia = partida.recursos.find((r) => r.sugerido_por_agente);
 
   // desglose de costo por tipo de recurso (patrón "Totales" del APU de referencia)
@@ -91,6 +96,19 @@ export default async function PartidaDetallePage({
           }
         />
       )}
+
+      <IniciarPartida
+        accion={iniciarPartida}
+        presupuestoId={id}
+        presupuestoPartidaId={partidaId}
+        disponible={estadoInicio.disponible}
+        iniciada={estadoInicio.iniciada}
+        iniciadaEn={estadoInicio.iniciadaEn}
+        autorizacionMotivo={estadoInicio.autorizacionMotivo}
+        totalOriginal={estadoInicio.totalOriginal}
+        totalTrabajo={estadoInicio.totalTrabajo}
+        sobrecosto={estadoInicio.sobrecosto}
+      />
 
       <div className="erp-panel erp-subpanel">
         <div className="erp-panel-head">

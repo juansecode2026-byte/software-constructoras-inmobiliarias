@@ -367,6 +367,99 @@ export async function obtenerComparacionOriginalTrabajo(
   };
 }
 
+export interface EstadoInicioPartida {
+  disponible: boolean;
+  areaCodigo: string | null;
+  iniciada: boolean;
+  iniciadaEn: string | null;
+  autorizacionMotivo: string | null;
+  totalOriginal: number | null;
+  totalTrabajo: number;
+  sobrecosto: boolean;
+}
+
+interface PresupuestoPartidaGateRaw {
+  id: string;
+  cantidad: number;
+  precio_unitario_total: number;
+  iniciada: boolean;
+  iniciada_en: string | null;
+  autorizacion_motivo: string | null;
+  partida_id: string;
+  area: {
+    codigo: string;
+    presupuesto_id: string;
+    presupuesto: { presupuesto_original_id: string | null } | { presupuesto_original_id: string | null }[];
+  };
+}
+
+// Estado del gate "Inicio de Partida" (ver docs/proceso-control-costos.md: nodo
+// naranja de decision, distinto del reporte de consulta "Comparacion
+// Original-Trabajo"). Compara el total de esta partida-en-trabajo contra su
+// equivalente en la version original (misma area por codigo, misma partida de
+// catalogo) para saber si hay sobrecosto que exija autorizacion.
+export async function obtenerEstadoInicioPartida(
+  presupuestoPartidaId: string,
+): Promise<EstadoInicioPartida> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("presupuesto_partidas")
+    .select(
+      `id, cantidad, precio_unitario_total, iniciada, iniciada_en, autorizacion_motivo, partida_id,
+       area:areas ( codigo, presupuesto_id, presupuesto:presupuestos ( presupuesto_original_id ) )`,
+    )
+    .eq("id", presupuestoPartidaId)
+    .single();
+  if (error) throw error;
+
+  const raw = data as unknown as PresupuestoPartidaGateRaw;
+  const areaPresupuesto = Array.isArray(raw.area.presupuesto) ? raw.area.presupuesto[0] : raw.area.presupuesto;
+  const totalTrabajo = Number(raw.cantidad) * Number(raw.precio_unitario_total);
+  const originalId = areaPresupuesto?.presupuesto_original_id ?? null;
+
+  const base = {
+    areaCodigo: raw.area.codigo,
+    iniciada: raw.iniciada,
+    iniciadaEn: raw.iniciada_en,
+    autorizacionMotivo: raw.autorizacion_motivo,
+    totalTrabajo,
+  };
+
+  if (!originalId) {
+    return { ...base, disponible: false, totalOriginal: null, sobrecosto: false };
+  }
+
+  const { data: areaOriginal, error: errorArea } = await supabase
+    .from("areas")
+    .select("id")
+    .eq("presupuesto_id", originalId)
+    .eq("codigo", raw.area.codigo)
+    .maybeSingle();
+  if (errorArea) throw errorArea;
+
+  let totalOriginal: number | null = null;
+  if (areaOriginal) {
+    const { data: ppOriginal, error: errorPP } = await supabase
+      .from("presupuesto_partidas")
+      .select("cantidad, precio_unitario_total")
+      .eq("area_id", areaOriginal.id)
+      .eq("partida_id", raw.partida_id)
+      .maybeSingle();
+    if (errorPP) throw errorPP;
+    if (ppOriginal) {
+      totalOriginal = Number(ppOriginal.cantidad) * Number(ppOriginal.precio_unitario_total);
+    }
+  }
+
+  return {
+    ...base,
+    disponible: totalOriginal !== null,
+    totalOriginal,
+    sobrecosto: totalOriginal !== null && totalTrabajo > totalOriginal,
+  };
+}
+
 export interface RecursoPartidaFila {
   codigo: string;
   nombre: string;
