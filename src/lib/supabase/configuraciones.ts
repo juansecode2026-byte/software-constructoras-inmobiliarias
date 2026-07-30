@@ -135,15 +135,19 @@ export interface PersonaDireccion {
 
 export interface PersonaDetalle extends PersonaFila {
   descripcion: string | null;
+  opcion_pago: "cheque" | "transferencia" | "efectivo" | null;
+  representante_legal_nombre: string | null;
+  representante_legal_identificador: string | null;
+  forma_pago: { nombre: string; dias_vence: number } | null;
   direcciones: PersonaDireccion[];
   datos_bancarios: {
     id: string;
     banco: string;
     tipo_cuenta: string;
     numero_cuenta: string;
-    forma_pago: string | null;
     moneda: string;
   }[];
+  archivos: { id: string; nombre: string; tipo: string | null; url: string }[];
 }
 
 export async function obtenerPersonaDetalle(personaId: string): Promise<PersonaDetalle> {
@@ -154,19 +158,41 @@ export async function obtenerPersonaDetalle(personaId: string): Promise<PersonaD
       `id, tipo_persona, identificador, nombre_legal, nombre_comercial,
        nombres, apellido_paterno, apellido_materno, giro, descripcion,
        es_proveedor, es_empleado, es_cliente, es_contratista, es_transportista, vigente,
+       opcion_pago, representante_legal_nombre, representante_legal_identificador,
+       forma_pago:formas_pago ( nombre, dias_vence ),
        direcciones:persona_direcciones (
          id, tipo, nombre, direccion, region, provincia, comuna, email, telefono, telefono2,
          contactos:persona_contactos ( id, nombre, cargo, telefono, celular, email, vigente )
        ),
        datos_bancarios:persona_datos_bancarios (
-         id, banco, tipo_cuenta, numero_cuenta, forma_pago, moneda
-       )`,
+         id, banco, tipo_cuenta, numero_cuenta, moneda
+       ),
+       archivos:persona_archivos ( id, nombre, tipo, url )`,
     )
     .eq("id", personaId)
     .single();
 
   if (error) throw error;
   return data as unknown as PersonaDetalle;
+}
+
+export interface FormaPagoFila {
+  id: string;
+  nombre: string;
+  dias_vence: number;
+  vigente: boolean;
+}
+
+export async function listarFormasPago(empresaId: string): Promise<FormaPagoFila[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("formas_pago")
+    .select("id, nombre, dias_vence, vigente")
+    .eq("empresa_id", empresaId)
+    .order("dias_vence");
+
+  if (error) throw error;
+  return data;
 }
 
 // ---------- clases de recurso (arbol de 3 niveles) y catalogo ----------

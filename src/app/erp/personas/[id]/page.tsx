@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { nombrePersona, obtenerPersonaDetalle, rolesPersona } from "@/lib/supabase/configuraciones";
 
+const OPCION_PAGO_LABEL: Record<string, string> = {
+  cheque: "Cheque",
+  transferencia: "Transferencia electrónica",
+  efectivo: "Efectivo",
+};
+
 export default async function PersonaDetallePage({
   params,
 }: {
@@ -70,6 +76,34 @@ export default async function PersonaDetallePage({
         </div>
       </div>
 
+      {persona.es_proveedor && (
+        <div className="erp-panel erp-subpanel">
+          <div className="erp-panel-head"><h3>Datos de proveedor</h3></div>
+          <div className="erp-panel-body erp-dato-grid">
+            <div className="erp-dato">
+              <span className="label">Forma de pago</span>
+              <span className="valor">
+                {persona.forma_pago
+                  ? `${persona.forma_pago.nombre}${persona.forma_pago.dias_vence > 0 ? ` (${persona.forma_pago.dias_vence} días)` : ""}`
+                  : "—"}
+              </span>
+            </div>
+            <div className="erp-dato">
+              <span className="label">Opción de pago</span>
+              <span className="valor">{OPCION_PAGO_LABEL[persona.opcion_pago ?? ""] ?? "—"}</span>
+            </div>
+            <div className="erp-dato">
+              <span className="label">Representante legal</span>
+              <span className="valor">{persona.representante_legal_nombre ?? "—"}</span>
+            </div>
+            <div className="erp-dato">
+              <span className="label">RUT del representante</span>
+              <span className="valor mono">{persona.representante_legal_identificador ?? "—"}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="erp-panel erp-subpanel">
         <div className="erp-panel-head"><h3>Direcciones</h3></div>
         <div className="erp-table-wrap">
@@ -122,11 +156,11 @@ export default async function PersonaDetallePage({
       </div>
 
       <div className="erp-panel erp-subpanel">
-        <div className="erp-panel-head"><h3>Datos bancarios</h3></div>
+        <div className="erp-panel-head"><h3>Cuentas bancarias</h3></div>
         <div className="erp-table-wrap">
           <table>
             <thead>
-              <tr><th>Banco</th><th>Tipo de cuenta</th><th>N° cuenta</th><th>Forma de pago</th><th>Moneda</th></tr>
+              <tr><th>Banco</th><th>Tipo de cuenta</th><th>N° cuenta</th><th>Moneda</th></tr>
             </thead>
             <tbody>
               {persona.datos_bancarios.map((b) => (
@@ -134,12 +168,33 @@ export default async function PersonaDetallePage({
                   <td>{b.banco}</td>
                   <td>{b.tipo_cuenta === "corriente" ? "Cuenta corriente" : b.tipo_cuenta}</td>
                   <td className="mono">{b.numero_cuenta}</td>
-                  <td>{b.forma_pago ?? "—"}</td>
                   <td className="mono">{b.moneda}</td>
                 </tr>
               ))}
               {persona.datos_bancarios.length === 0 && (
-                <tr><td colSpan={5} className="erp-empty">Sin cuentas registradas</td></tr>
+                <tr><td colSpan={4} className="erp-empty">Sin cuentas registradas</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="erp-panel erp-subpanel">
+        <div className="erp-panel-head"><h3>Adjuntos</h3></div>
+        <div className="erp-table-wrap">
+          <table>
+            <thead>
+              <tr><th>Archivo</th><th>Tipo</th></tr>
+            </thead>
+            <tbody>
+              {persona.archivos.map((a) => (
+                <tr key={a.id}>
+                  <td>{a.nombre}</td>
+                  <td>{a.tipo ?? "—"}</td>
+                </tr>
+              ))}
+              {persona.archivos.length === 0 && (
+                <tr><td colSpan={2} className="erp-empty">Sin archivos adjuntos</td></tr>
               )}
             </tbody>
           </table>
