@@ -25,3 +25,29 @@ export function estadoPresupuestoLabel(estado: "en_proceso" | "aprobado"): strin
 export function estadoPresupuestoClase(estado: "en_proceso" | "aprobado"): string {
   return estado === "aprobado" ? "aprobado" : "proceso";
 }
+
+type EstadoDocumento = "en_digitacion" | "pendiente" | "terminada";
+
+export function estadoDocumentoLabel(estado: EstadoDocumento): string {
+  if (estado === "terminada") return "Terminada";
+  if (estado === "pendiente") return "Pendiente";
+  return "En digitación";
+}
+
+export function estadoDocumentoClase(estado: EstadoDocumento): string {
+  return estado === "terminada" ? "aprobado" : "plan";
+}
+
+type EstadoAprobacion = "pendiente" | "aprobado" | "rechazado";
+
+export function estadoAprobacionLabel(estado: EstadoAprobacion): string {
+  if (estado === "aprobado") return "Aprobado";
+  if (estado === "rechazado") return "Rechazado";
+  return "Pendiente";
+}
+
+export function estadoAprobacionClase(estado: EstadoAprobacion): string {
+  if (estado === "aprobado") return "aprobado";
+  if (estado === "rechazado") return "rechazado";
+  return "plan";
+}

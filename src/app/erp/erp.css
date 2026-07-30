@@ -747,6 +747,10 @@
 .erp[data-theme="dark"] .erp-pill.ejecucion {
   color: var(--teal);
 }
+.erp-pill.rechazado {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+}
 
 /* ---------- detalle APU ---------- */
 .erp-apu-head {

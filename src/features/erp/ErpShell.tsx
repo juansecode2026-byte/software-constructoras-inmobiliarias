@@ -102,7 +102,8 @@ export function ErpShell({
         ))}
 
         <div className="erp-sidebar-foot">
-          Estructura completa según diagnóstico · solo Inicio y Presupuesto tienen vista construida.
+          Estructura completa según diagnóstico · solo Inicio, Presupuesto y Compras tienen vista
+          construida.
         </div>
       </aside>
 

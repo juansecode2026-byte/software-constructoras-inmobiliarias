@@ -52,7 +52,7 @@ export const navegacion: GrupoNav[] = [
     titulo: "Control de costos",
     items: [
       { nombre: "Presupuesto", href: "/erp/presupuesto" },
-      { nombre: "Compras" },
+      { nombre: "Compras", href: "/erp/compras" },
       { nombre: "Recepciones" },
       { nombre: "Bodega / Almacén" },
       { nombre: "Subcontratos" },
