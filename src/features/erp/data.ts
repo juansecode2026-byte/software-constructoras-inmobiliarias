@@ -74,6 +74,7 @@ export const navegacion: GrupoNav[] = [
     titulo: "Configuraciones básicas",
     items: [
       { nombre: "Empresa", href: "/erp/empresa" },
+      { nombre: "Mi perfil", href: "/erp/perfil" },
       { nombre: "Opciones", href: "/erp/opciones" },
       { nombre: "Personas", href: "/erp/personas" },
       { nombre: "Recursos", href: "/erp/recursos" },
