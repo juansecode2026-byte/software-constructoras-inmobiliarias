@@ -152,6 +152,7 @@ export interface PresupuestoDetalle {
   iva_pct: number;
   credito_iva_pct: number;
   incluir_pct_en_pu: boolean;
+  presupuesto_original_id: string | null;
   cliente: { nombre_legal: string | null; nombre_comercial: string | null } | null;
 }
 
@@ -162,7 +163,7 @@ export async function obtenerPresupuestoDetalle(presupuestoId: string): Promise<
     .select(
       `id, numero, nombre, estado, vigente, descripcion, categoria, pie_firma,
        imprevistos_pct, gastos_generales_pct, utilidad_pct, iva_pct, credito_iva_pct,
-       incluir_pct_en_pu,
+       incluir_pct_en_pu, presupuesto_original_id,
        cliente:personas ( nombre_legal, nombre_comercial )`,
     )
     .eq("id", presupuestoId)
@@ -251,6 +252,119 @@ export async function listarAreasYPartidas(presupuestoId: string): Promise<AreaC
       partida: pp.partida,
     })),
   }));
+}
+
+export interface ComparacionArea {
+  codigo: string;
+  nombre: string;
+  unidad: string;
+  cantidadOriginal: number | null;
+  totalOriginal: number | null;
+  cantidadTrabajo: number | null;
+  totalTrabajo: number | null;
+  diferenciaCantidad: number | null;
+  diferenciaTotal: number | null;
+}
+
+export interface ComparacionOriginalTrabajo {
+  original: { id: string; numero: number; nombre: string };
+  trabajo: { id: string; numero: number; nombre: string };
+  areas: ComparacionArea[];
+  totalOriginal: number;
+  totalTrabajo: number;
+}
+
+interface AreaComparacionRaw {
+  codigo: string;
+  nombre: string;
+  unidad: string;
+  cantidad: number;
+  presupuesto_partidas: { cantidad: number; precio_unitario_total: number }[];
+}
+
+async function cargarAreasParaComparacion(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  presupuestoId: string,
+): Promise<Map<string, { nombre: string; unidad: string; cantidad: number; total: number }>> {
+  const { data, error } = await supabase
+    .from("areas")
+    .select("codigo, nombre, unidad, cantidad, presupuesto_partidas ( cantidad, precio_unitario_total )")
+    .eq("presupuesto_id", presupuestoId);
+
+  if (error) throw error;
+
+  const mapa = new Map<string, { nombre: string; unidad: string; cantidad: number; total: number }>();
+  for (const area of data as unknown as AreaComparacionRaw[]) {
+    const total = area.presupuesto_partidas.reduce(
+      (t, pp) => t + Number(pp.cantidad) * Number(pp.precio_unitario_total),
+      0,
+    );
+    mapa.set(area.codigo, {
+      nombre: area.nombre,
+      unidad: area.unidad,
+      cantidad: Number(area.cantidad),
+      total,
+    });
+  }
+  return mapa;
+}
+
+// Compara, a nivel Area, un presupuesto de trabajo contra su version original
+// congelada (ver docs/proceso-control-costos.md y modulo-presupuesto-demo-muda.md:
+// reporte "Comparacion de Presupuestos Original-Trabajo"). No requiere el modulo
+// de Compras: solo cruza dos versiones de presupuesto ya cargadas.
+export async function obtenerComparacionOriginalTrabajo(
+  presupuestoTrabajoId: string,
+): Promise<ComparacionOriginalTrabajo> {
+  const supabase = await createClient();
+
+  const { data: trabajo, error: errorTrabajo } = await supabase
+    .from("presupuestos")
+    .select("id, numero, nombre, presupuesto_original_id")
+    .eq("id", presupuestoTrabajoId)
+    .single();
+  if (errorTrabajo) throw errorTrabajo;
+  if (!trabajo.presupuesto_original_id) {
+    throw new Error("Este presupuesto no tiene una version original asociada.");
+  }
+
+  const { data: original, error: errorOriginal } = await supabase
+    .from("presupuestos")
+    .select("id, numero, nombre")
+    .eq("id", trabajo.presupuesto_original_id)
+    .single();
+  if (errorOriginal) throw errorOriginal;
+
+  const [mapaOriginal, mapaTrabajo] = await Promise.all([
+    cargarAreasParaComparacion(supabase, original.id),
+    cargarAreasParaComparacion(supabase, presupuestoTrabajoId),
+  ]);
+
+  const codigos = new Set([...mapaOriginal.keys(), ...mapaTrabajo.keys()]);
+
+  const areas: ComparacionArea[] = [...codigos].sort().map((codigo) => {
+    const o = mapaOriginal.get(codigo);
+    const t = mapaTrabajo.get(codigo);
+    return {
+      codigo,
+      nombre: t?.nombre ?? o?.nombre ?? codigo,
+      unidad: t?.unidad ?? o?.unidad ?? "",
+      cantidadOriginal: o?.cantidad ?? null,
+      totalOriginal: o?.total ?? null,
+      cantidadTrabajo: t?.cantidad ?? null,
+      totalTrabajo: t?.total ?? null,
+      diferenciaCantidad: o && t ? t.cantidad - o.cantidad : null,
+      diferenciaTotal: o && t ? t.total - o.total : (t?.total ?? 0) - (o?.total ?? 0),
+    };
+  });
+
+  return {
+    original: { id: original.id, numero: original.numero, nombre: original.nombre },
+    trabajo: { id: trabajo.id, numero: trabajo.numero, nombre: trabajo.nombre },
+    areas,
+    totalOriginal: areas.reduce((t, a) => t + (a.totalOriginal ?? 0), 0),
+    totalTrabajo: areas.reduce((t, a) => t + (a.totalTrabajo ?? 0), 0),
+  };
 }
 
 export interface RecursoPartidaFila {

@@ -187,6 +187,11 @@ export default async function PresupuestoDetallePage({
         <button type="button" className="erp-btn ghost small">+ Grupo</button>
         <button type="button" className="erp-btn ghost small">+ Partida</button>
         <button type="button" className="erp-btn ghost small">Importar desde Excel</button>
+        {presupuesto.presupuesto_original_id && (
+          <Link href={`/erp/presupuesto/${id}/comparacion`} className="erp-btn ghost small">
+            Comparar con Original
+          </Link>
+        )}
         <button type="button" className="erp-btn" disabled>Grabar todos</button>
       </div>
 

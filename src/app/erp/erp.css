@@ -375,6 +375,10 @@
   margin: 0.9rem 0 1.3rem;
   max-width: 60ch;
 }
+.erp-negativo {
+  color: var(--danger);
+  font-weight: 600;
+}
 
 /* ---------- tarjetas de proyecto ---------- */
 .erp-project-grid {
