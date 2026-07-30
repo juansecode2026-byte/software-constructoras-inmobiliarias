@@ -42,7 +42,10 @@
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 32px -16px rgba(0, 0, 0, 0.6);
 }
 
-.erp button {
+/* Reset de botones sin estilo propio. Va dentro de :where() para que su
+   especificidad sea 0: si no, ".erp button" (0,1,1) le gana a las clases de
+   boton como .erp-btn (0,1,0) y les borra fondo, borde y color. */
+:where(.erp button) {
   font: inherit;
   color: inherit;
   background: none;
@@ -602,7 +605,9 @@
   padding: 0.42rem 0.8rem;
   cursor: pointer;
 }
-.erp[data-theme="dark"] .erp-btn {
+/* Solo los botones solidos invierten el texto en modo noche: el ghost tiene
+   fondo transparente y necesita conservar el color de tinta. */
+.erp[data-theme="dark"] .erp-btn:not(.ghost) {
   color: #0b1119;
 }
 .erp-btn:hover {
@@ -893,6 +898,20 @@
   margin-right: auto;
   font-size: 0.78rem;
   font-weight: 600;
+}
+.erp-toolbar .erp-aviso {
+  margin-right: 0;
+}
+.erp-lock-hint {
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+}
+/* el fieldset solo agrupa para deshabilitar: no debe aportar estilos propios */
+.erp-fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
 }
 .erp-aviso.ok {
   color: var(--teal);
