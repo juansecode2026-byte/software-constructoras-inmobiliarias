@@ -90,6 +90,7 @@ export interface PresupuestoFila {
   nombre: string;
   estado: "en_proceso" | "aprobado";
   vigente: boolean;
+  carpeta_id: string | null;
   total: number;
 }
 
@@ -98,7 +99,7 @@ export async function listarPresupuestos(obraId: string): Promise<PresupuestoFil
   const { data, error } = await supabase
     .from("presupuestos")
     .select(
-      `id, numero, nombre, estado, vigente,
+      `id, numero, nombre, estado, vigente, carpeta_id,
        areas ( presupuesto_partidas ( cantidad, precio_unitario_total ) )`,
     )
     .eq("obra_id", obraId)
@@ -116,6 +117,7 @@ export async function listarPresupuestos(obraId: string): Promise<PresupuestoFil
     nombre: p.nombre,
     estado: p.estado,
     vigente: p.vigente,
+    carpeta_id: p.carpeta_id,
     total: sumarTotal([{ areas: p.areas }]),
   }));
 }

@@ -1,4 +1,4 @@
-import { BudgetTable } from "@/features/erp/BudgetTable";
+import { PresupuestoExplorer } from "@/features/erp/PresupuestoExplorer";
 import { listarCarpetas, listarPresupuestos, obtenerObraPorNombre } from "@/lib/supabase/presupuesto";
 
 export default async function PresupuestoPage() {
@@ -21,19 +21,7 @@ export default async function PresupuestoPage() {
         <button type="button" className="erp-btn ghost small">Importar desde Excel</button>
       </div>
 
-      <div className="erp-list-layout">
-        <div className="erp-tree">
-          {carpetas.map((carpeta) => (
-            <div key={carpeta.id} className={`erp-tree-item${carpeta.parent_id ? " sub" : ""}`}>
-              📁 {carpeta.nombre}
-            </div>
-          ))}
-        </div>
-
-        <div className="erp-panel">
-          <BudgetTable presupuestos={presupuestos} />
-        </div>
-      </div>
+      <PresupuestoExplorer carpetas={carpetas} presupuestos={presupuestos} />
     </div>
   );
 }

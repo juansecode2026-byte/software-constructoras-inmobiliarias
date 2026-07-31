@@ -671,6 +671,31 @@
   padding-left: 2.1rem;
   font-size: 0.8rem;
 }
+.erp-tree-btn {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+.erp-tree-btn:disabled {
+  cursor: default;
+}
+.erp-tree-btn:not(:disabled):hover {
+  background: var(--line);
+}
+.erp-tree-caret {
+  display: inline-block;
+  width: 0.9em;
+  font-size: 0.7em;
+  color: var(--ink-soft);
+}
+.erp-linklike {
+  color: var(--teal-deep);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.erp[data-theme="dark"] .erp-linklike {
+  color: var(--teal);
+}
 .erp-tree-cod {
   font-size: 0.68rem;
   color: var(--ink-soft);
