@@ -41,9 +41,15 @@ export const insightsAgente: InsightAgente[] = [
   { icono: "%", texto: "Precio sugerido para Depto. 58m² actualizado según costo real + margen.", meta: "Agente de pricing · ayer" },
 ];
 
+export interface ItemNav {
+  nombre: string;
+  href?: string;
+  hijos?: ItemNav[];
+}
+
 export interface GrupoNav {
   titulo: string;
-  items: { nombre: string; href?: string }[];
+  items: ItemNav[];
 }
 
 export const navegacion: GrupoNav[] = [
@@ -51,7 +57,15 @@ export const navegacion: GrupoNav[] = [
   {
     titulo: "Control de costos",
     items: [
-      { nombre: "Presupuesto", href: "/erp/presupuesto" },
+      {
+        nombre: "Presupuesto",
+        hijos: [
+          { nombre: "Presupuesto", href: "/erp/presupuesto" },
+          { nombre: "Partidas", href: "/erp/presupuesto/partidas" },
+          { nombre: "Inicio de Partida", href: "/erp/presupuesto/inicio-partida" },
+          { nombre: "Informes", href: "/erp/presupuesto/informes" },
+        ],
+      },
       { nombre: "Compras", href: "/erp/compras" },
       { nombre: "Recepciones" },
       { nombre: "Bodega / Almacén" },

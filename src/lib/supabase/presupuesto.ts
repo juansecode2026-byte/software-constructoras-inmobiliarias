@@ -538,3 +538,196 @@ export async function obtenerPartidaDetalle(
     })),
   };
 }
+
+// ---------- vistas obra-completa: Partidas, Inicio de Partida, Informes ----------
+// (ver docs/modulo-presupuesto-imagenes.md: submenu real "Presupuesto > Partidas /
+// Inicio de Partida / Informes" - antes todo vivia enterrado dentro del detalle
+// de un presupuesto puntual, sin vista propia a nivel obra)
+
+export interface PartidaObraFila {
+  presupuestoPartidaId: string;
+  presupuestoId: string;
+  presupuestoNumero: number;
+  areaCodigo: string;
+  areaNombre: string;
+  partida: { codigo: string; nombre: string; unidad: string };
+  cantidad: number;
+  total: number;
+}
+
+export async function listarPartidasObra(obraId: string): Promise<PartidaObraFila[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("presupuestos")
+    .select(
+      `id, numero,
+       areas ( codigo, nombre,
+         presupuesto_partidas ( id, cantidad, precio_unitario_total,
+           partida:partidas ( codigo, nombre, unidad ) ) )`,
+    )
+    .eq("obra_id", obraId)
+    .order("numero");
+
+  if (error) throw error;
+
+  const filas: PartidaObraFila[] = [];
+  for (const presupuesto of data as unknown as {
+    id: string;
+    numero: number;
+    areas: {
+      codigo: string;
+      nombre: string;
+      presupuesto_partidas: {
+        id: string;
+        cantidad: number;
+        precio_unitario_total: number;
+        partida: { codigo: string; nombre: string; unidad: string };
+      }[];
+    }[];
+  }[]) {
+    for (const area of presupuesto.areas) {
+      for (const pp of area.presupuesto_partidas) {
+        filas.push({
+          presupuestoPartidaId: pp.id,
+          presupuestoId: presupuesto.id,
+          presupuestoNumero: presupuesto.numero,
+          areaCodigo: area.codigo,
+          areaNombre: area.nombre,
+          partida: pp.partida,
+          cantidad: Number(pp.cantidad),
+          total: Number(pp.cantidad) * Number(pp.precio_unitario_total),
+        });
+      }
+    }
+  }
+  return filas;
+}
+
+export interface PresupuestoTrabajoFila {
+  id: string;
+  numero: number;
+  nombre: string;
+  originalNumero: number;
+}
+
+// Presupuestos de trabajo con version original asociada: los unicos que
+// pueden compararse (ver obtenerComparacionOriginalTrabajo) y los unicos que
+// aplican para el gate de Inicio de Partida.
+export async function listarPresupuestosConOriginal(obraId: string): Promise<PresupuestoTrabajoFila[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("presupuestos")
+    .select("id, numero, nombre, original:presupuesto_original_id ( numero )")
+    .eq("obra_id", obraId)
+    .not("presupuesto_original_id", "is", null)
+    .order("numero");
+
+  if (error) throw error;
+
+  return (data as unknown as { id: string; numero: number; nombre: string; original: { numero: number } | null }[])
+    .filter((p) => p.original !== null)
+    .map((p) => ({ id: p.id, numero: p.numero, nombre: p.nombre, originalNumero: p.original!.numero }));
+}
+
+export interface EstadoInicioObraFila {
+  presupuestoPartidaId: string;
+  presupuestoId: string;
+  presupuestoNumero: number;
+  areaCodigo: string;
+  partida: { codigo: string; nombre: string };
+  totalOriginal: number | null;
+  totalTrabajo: number;
+  sobrecosto: boolean;
+  iniciada: boolean;
+  iniciadaEn: string | null;
+}
+
+// Todas las partidas de todos los presupuestos de trabajo de la obra, con su
+// estado de "Inicio de Partida" - generaliza obtenerEstadoInicioPartida (que
+// resuelve una sola partida) a la vista de lista completa de la obra.
+export async function listarEstadoInicioObra(obraId: string): Promise<EstadoInicioObraFila[]> {
+  const supabase = await createClient();
+  const trabajos = await listarPresupuestosConOriginal(obraId);
+  if (trabajos.length === 0) return [];
+
+  const { data: presupuestosTrabajo, error: errorTrabajo } = await supabase
+    .from("presupuestos")
+    .select("id, presupuesto_original_id")
+    .in(
+      "id",
+      trabajos.map((t) => t.id),
+    );
+  if (errorTrabajo) throw errorTrabajo;
+
+  const originalIdDe = new Map(
+    (presupuestosTrabajo as { id: string; presupuesto_original_id: string }[]).map((p) => [
+      p.id,
+      p.presupuesto_original_id,
+    ]),
+  );
+
+  const filas: EstadoInicioObraFila[] = [];
+
+  for (const trabajo of trabajos) {
+    const originalId = originalIdDe.get(trabajo.id);
+    if (!originalId) continue;
+
+    const [areasTrabajo, areasOriginal] = await Promise.all([
+      listarAreasConPartidasGate(supabase, trabajo.id),
+      listarAreasConPartidasGate(supabase, originalId),
+    ]);
+
+    const totalPorPartidaOriginal = new Map<string, number>();
+    for (const area of areasOriginal) {
+      for (const pp of area.presupuesto_partidas) {
+        totalPorPartidaOriginal.set(`${area.codigo}::${pp.partida_id}`, Number(pp.cantidad) * Number(pp.precio_unitario_total));
+      }
+    }
+
+    for (const area of areasTrabajo) {
+      for (const pp of area.presupuesto_partidas) {
+        const totalTrabajo = Number(pp.cantidad) * Number(pp.precio_unitario_total);
+        const totalOriginal = totalPorPartidaOriginal.get(`${area.codigo}::${pp.partida_id}`) ?? null;
+        filas.push({
+          presupuestoPartidaId: pp.id,
+          presupuestoId: trabajo.id,
+          presupuestoNumero: trabajo.numero,
+          areaCodigo: area.codigo,
+          partida: pp.partida,
+          totalOriginal,
+          totalTrabajo,
+          sobrecosto: totalOriginal !== null && totalTrabajo > totalOriginal,
+          iniciada: pp.iniciada,
+          iniciadaEn: pp.iniciada_en,
+        });
+      }
+    }
+  }
+
+  return filas;
+}
+
+async function listarAreasConPartidasGate(supabase: Awaited<ReturnType<typeof createClient>>, presupuestoId: string) {
+  const { data, error } = await supabase
+    .from("areas")
+    .select(
+      `codigo,
+       presupuesto_partidas ( id, partida_id, cantidad, precio_unitario_total, iniciada, iniciada_en,
+         partida:partidas ( codigo, nombre ) )`,
+    )
+    .eq("presupuesto_id", presupuestoId);
+  if (error) throw error;
+
+  return data as unknown as {
+    codigo: string;
+    presupuesto_partidas: {
+      id: string;
+      partida_id: string;
+      cantidad: number;
+      precio_unitario_total: number;
+      iniciada: boolean;
+      iniciada_en: string | null;
+      partida: { codigo: string; nombre: string };
+    }[];
+  }[];
+}

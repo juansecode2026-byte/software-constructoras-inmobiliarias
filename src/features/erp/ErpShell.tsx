@@ -7,7 +7,7 @@ import { logout } from "@/app/login/actions";
 import type { ObraFila } from "@/lib/supabase/presupuesto";
 import { estadoObraLabel } from "./format";
 import { IdleTimeout } from "./IdleTimeout";
-import { navegacion } from "./data";
+import { navegacion, type ItemNav } from "./data";
 
 const THEME_KEY = "erp-theme";
 
@@ -39,6 +39,43 @@ export function ErpShell({
   const [menuAbierto, setMenuAbierto] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // grupos del sidebar con hijos (ej. "Presupuesto" -> Presupuesto/Partidas/
+  // Inicio de Partida/Informes): se auto-abren al entrar a una de sus rutas,
+  // pero el usuario puede colapsarlos manualmente sin que la ruta activa los
+  // vuelva a forzar abiertos (por eso el efecto solo agrega, nunca depende de
+  // `abierto` en el render).
+  const [gruposAbiertos, setGruposAbiertos] = useState<Set<string>>(new Set());
+
+  function grupoTieneRutaActiva(item: ItemNav): boolean {
+    return item.hijos?.some((h) => h.href && esActivo(h.href)) ?? false;
+  }
+
+  function alternarGrupo(nombre: string) {
+    setGruposAbiertos((prev) => {
+      const siguiente = new Set(prev);
+      if (siguiente.has(nombre)) siguiente.delete(nombre);
+      else siguiente.add(nombre);
+      return siguiente;
+    });
+  }
+
+  useEffect(() => {
+    setGruposAbiertos((prev) => {
+      let cambio = false;
+      const siguiente = new Set(prev);
+      for (const grupo of navegacion) {
+        for (const item of grupo.items) {
+          if (item.hijos && grupoTieneRutaActiva(item) && !siguiente.has(item.nombre)) {
+            siguiente.add(item.nombre);
+            cambio = true;
+          }
+        }
+      }
+      return cambio ? siguiente : prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
   useEffect(() => {
     const guardado = localStorage.getItem(THEME_KEY);
     if (guardado === "dark") setTheme("dark");
@@ -61,9 +98,22 @@ export function ErpShell({
     localStorage.setItem(THEME_KEY, siguiente);
   }
 
+  // coincide solo en el propio segmento (o sus hijos de ruta), nunca por
+  // simple prefijo de texto (evita que "/erp/presupuesto" quede "activo"
+  // en cualquier pagina que empiece igual, como sus propios hermanos)
   function esActivo(href: string) {
     if (href === "/erp") return pathname === "/erp";
-    return pathname.startsWith(href);
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
+
+  // entre varios hermanos que podrian coincidir a la vez (ej. "/erp/presupuesto"
+  // y "/erp/presupuesto/informes" cuando se esta en Informes), solo el href
+  // mas especifico (mas largo) se marca activo - los demas no.
+  function esElMasEspecifico(href: string, hermanos: ItemNav[]): boolean {
+    if (!esActivo(href)) return false;
+    const coincidencias = hermanos.filter((h) => h.href && esActivo(h.href)).map((h) => h.href!);
+    const masLargo = coincidencias.reduce((a, b) => (b.length > a.length ? b : a), "");
+    return href === masLargo;
   }
 
   return (
@@ -82,8 +132,41 @@ export function ErpShell({
         {navegacion.map((grupo) => (
           <div className="erp-navgroup" key={grupo.titulo}>
             <h4>{grupo.titulo}</h4>
-            {grupo.items.map((item) =>
-              item.href ? (
+            {grupo.items.map((item) => {
+              if (item.hijos) {
+                const abierto = gruposAbiertos.has(item.nombre);
+                return (
+                  <div key={item.nombre} className="erp-navsub">
+                    <button
+                      type="button"
+                      className={`erp-navitem erp-navitem-btn${grupoTieneRutaActiva(item) ? " is-active" : ""}`}
+                      onClick={() => alternarGrupo(item.nombre)}
+                    >
+                      <span className="erp-tree-caret">{abierto ? "▾" : "▸"}</span>
+                      {item.nombre}
+                    </button>
+                    {abierto &&
+                      item.hijos.map((hijo) =>
+                        hijo.href ? (
+                          <Link
+                            key={hijo.nombre}
+                            href={hijo.href}
+                            className={`erp-navitem is-live sub${esElMasEspecifico(hijo.href, item.hijos!) ? " is-active" : ""}`}
+                          >
+                            {hijo.nombre}
+                          </Link>
+                        ) : (
+                          <span key={hijo.nombre} className="erp-navitem sub">
+                            {hijo.nombre}
+                            <span className="soon">próx.</span>
+                          </span>
+                        ),
+                      )}
+                  </div>
+                );
+              }
+
+              return item.href ? (
                 <Link
                   key={item.nombre}
                   href={item.href}
@@ -96,8 +179,8 @@ export function ErpShell({
                   {item.nombre}
                   <span className="soon">próx.</span>
                 </span>
-              ),
-            )}
+              );
+            })}
           </div>
         ))}
 
