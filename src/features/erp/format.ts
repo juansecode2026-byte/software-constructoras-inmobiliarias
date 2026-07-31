@@ -18,12 +18,11 @@ export function estadoObraClase(estado: "en_planificacion" | "en_ejecucion" | "c
   return estado === "en_ejecucion" ? "ejecucion" : "plan";
 }
 
-export function estadoPresupuestoLabel(estado: "en_proceso" | "aprobado"): string {
-  return estado === "aprobado" ? "Aprobado" : "En proceso";
-}
-
-export function estadoPresupuestoClase(estado: "en_proceso" | "aprobado"): string {
-  return estado === "aprobado" ? "aprobado" : "proceso";
+// El estado del presupuesto es un catalogo mantenible (el ERP de referencia
+// tiene un boton "+" junto al dropdown), no un enum fijo - por eso el tono
+// del pill depende del flag `es_aprobado` de esa fila, no de comparar texto.
+export function estadoPresupuestoClase(estadoEsAprobado: boolean): string {
+  return estadoEsAprobado ? "aprobado" : "proceso";
 }
 
 type EstadoDocumento = "en_digitacion" | "pendiente" | "terminada";

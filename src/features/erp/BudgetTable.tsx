@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import type { PresupuestoFila } from "@/lib/supabase/presupuesto";
-import { estadoPresupuestoClase, estadoPresupuestoLabel, formatoMoneda } from "./format";
+import { estadoPresupuestoClase, formatoMoneda } from "./format";
 
 export function BudgetTable({ presupuestos }: { presupuestos: PresupuestoFila[] }) {
   const router = useRouter();
@@ -33,8 +33,8 @@ export function BudgetTable({ presupuestos }: { presupuestos: PresupuestoFila[] 
               <td className="num">{p.numero}</td>
               <td>{p.nombre}</td>
               <td>
-                <span className={`erp-pill ${estadoPresupuestoClase(p.estado)}`}>
-                  {estadoPresupuestoLabel(p.estado)}
+                <span className={`erp-pill ${estadoPresupuestoClase(p.estadoEsAprobado)}`}>
+                  {p.estado}
                 </span>
               </td>
               <td>{p.vigente ? "Sí" : "No"}</td>

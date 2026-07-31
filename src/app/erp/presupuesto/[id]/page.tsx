@@ -6,7 +6,7 @@ import {
   type GrupoFila,
   type PartidaEnAreaFila,
 } from "@/lib/supabase/presupuesto";
-import { formatoMoneda, estadoPresupuestoLabel, estadoPresupuestoClase } from "@/features/erp/format";
+import { formatoMoneda, estadoPresupuestoClase } from "@/features/erp/format";
 
 interface FilaArbol {
   key: string;
@@ -141,8 +141,8 @@ export default async function PresupuestoDetallePage({
             <Link href="/erp/presupuesto">Presupuesto</Link> › detalle
           </span>
         </div>
-        <span className={`erp-pill ${estadoPresupuestoClase(presupuesto.estado)}`}>
-          {estadoPresupuestoLabel(presupuesto.estado)}
+        <span className={`erp-pill ${estadoPresupuestoClase(presupuesto.estadoEsAprobado)}`}>
+          {presupuesto.estado}
         </span>
       </div>
 

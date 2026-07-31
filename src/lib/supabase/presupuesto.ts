@@ -88,7 +88,8 @@ export interface PresupuestoFila {
   id: string;
   numero: number;
   nombre: string;
-  estado: "en_proceso" | "aprobado";
+  estado: string;
+  estadoEsAprobado: boolean;
   vigente: boolean;
   carpeta_id: string | null;
   total: number;
@@ -99,7 +100,8 @@ export async function listarPresupuestos(obraId: string): Promise<PresupuestoFil
   const { data, error } = await supabase
     .from("presupuestos")
     .select(
-      `id, numero, nombre, estado, vigente, carpeta_id,
+      `id, numero, nombre, vigente, carpeta_id,
+       estado:presupuesto_estados ( nombre, es_aprobado ),
        areas ( presupuesto_partidas ( cantidad, precio_unitario_total ) )`,
     )
     .eq("obra_id", obraId)
@@ -108,14 +110,21 @@ export async function listarPresupuestos(obraId: string): Promise<PresupuestoFil
   if (error) throw error;
 
   return (
-    data as unknown as (Omit<PresupuestoFila, "total"> & {
+    data as unknown as {
+      id: string;
+      numero: number;
+      nombre: string;
+      vigente: boolean;
+      carpeta_id: string | null;
+      estado: { nombre: string; es_aprobado: boolean };
       areas: { presupuesto_partidas: { cantidad: number; precio_unitario_total: number }[] }[];
-    })[]
+    }[]
   ).map((p) => ({
     id: p.id,
     numero: p.numero,
     nombre: p.nombre,
-    estado: p.estado,
+    estado: p.estado.nombre,
+    estadoEsAprobado: p.estado.es_aprobado,
     vigente: p.vigente,
     carpeta_id: p.carpeta_id,
     total: sumarTotal([{ areas: p.areas }]),
@@ -143,7 +152,8 @@ export interface PresupuestoDetalle {
   id: string;
   numero: number;
   nombre: string;
-  estado: "en_proceso" | "aprobado";
+  estado: string;
+  estadoEsAprobado: boolean;
   vigente: boolean;
   descripcion: string | null;
   categoria: string | null;
@@ -163,16 +173,20 @@ export async function obtenerPresupuestoDetalle(presupuestoId: string): Promise<
   const { data, error } = await supabase
     .from("presupuestos")
     .select(
-      `id, numero, nombre, estado, vigente, descripcion, categoria, pie_firma,
+      `id, numero, nombre, vigente, descripcion, categoria, pie_firma,
        imprevistos_pct, gastos_generales_pct, utilidad_pct, iva_pct, credito_iva_pct,
        incluir_pct_en_pu, presupuesto_original_id,
+       estado:presupuesto_estados ( nombre, es_aprobado ),
        cliente:personas ( nombre_legal, nombre_comercial )`,
     )
     .eq("id", presupuestoId)
     .single();
 
   if (error) throw error;
-  return data as unknown as PresupuestoDetalle;
+  const bruto = data as unknown as Omit<PresupuestoDetalle, "estado" | "estadoEsAprobado"> & {
+    estado: { nombre: string; es_aprobado: boolean };
+  };
+  return { ...bruto, estado: bruto.estado.nombre, estadoEsAprobado: bruto.estado.es_aprobado };
 }
 
 export interface GrupoFila {
