@@ -1,4 +1,3 @@
-"use client";
 
 import type { ObraFila } from "@/lib/supabase/presupuesto";
 import { estadoObraClase, estadoObraLabel, formatoMoneda } from "./format";

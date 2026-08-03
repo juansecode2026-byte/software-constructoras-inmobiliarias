@@ -1,11 +1,10 @@
-"use client";
 
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import type { PresupuestoFila } from "@/lib/supabase/presupuesto";
 import { estadoPresupuestoClase, formatoMoneda } from "./format";
 
 export function BudgetTable({ presupuestos }: { presupuestos: PresupuestoFila[] }) {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   if (presupuestos.length === 0) {
     return <p className="erp-note" style={{ padding: "1.1rem" }}>Esta obra todavía no tiene presupuestos cargados.</p>;
@@ -28,7 +27,7 @@ export function BudgetTable({ presupuestos }: { presupuestos: PresupuestoFila[] 
             <tr
               key={p.id}
               className="rowlink"
-              onClick={() => router.push(`/erp/presupuesto/${p.id}`)}
+              onClick={() => navigate(`/erp/presupuesto/${p.id}`)}
             >
               <td className="num">{p.numero}</td>
               <td>{p.nombre}</td>

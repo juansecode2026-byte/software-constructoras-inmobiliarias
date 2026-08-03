@@ -1,12 +1,8 @@
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { logout } from "@/app/login/actions";
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import type { ObraFila } from "@/lib/supabase/presupuesto";
 import { estadoObraLabel } from "./format";
-import { IdleTimeout } from "./IdleTimeout";
 import { navegacion, type ItemNav } from "./data";
 
 const THEME_KEY = "erp-theme";
@@ -33,7 +29,8 @@ export function ErpShell({
   userEmail: string;
   obras: ObraFila[];
 }) {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
+  const { cerrarSesion } = useAuth();
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [proyectoActivo, setProyectoActivo] = useState(obras[0]?.nombre ?? "");
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -118,7 +115,6 @@ export function ErpShell({
 
   return (
     <ProyectoContext.Provider value={{ proyectoActivo, setProyectoActivo }}>
-    <IdleTimeout />
     <div className="erp" data-theme={theme}>
       <aside className="erp-sidebar">
         <div className="erp-brand">
@@ -150,7 +146,7 @@ export function ErpShell({
                         hijo.href ? (
                           <Link
                             key={hijo.nombre}
-                            href={hijo.href}
+                            to={hijo.href}
                             className={`erp-navitem is-live sub${esElMasEspecifico(hijo.href, item.hijos!) ? " is-active" : ""}`}
                           >
                             {hijo.nombre}
@@ -169,7 +165,7 @@ export function ErpShell({
               return item.href ? (
                 <Link
                   key={item.nombre}
-                  href={item.href}
+                  to={item.href}
                   className={`erp-navitem is-live${esActivo(item.href) ? " is-active" : ""}`}
                 >
                   {item.nombre}
@@ -239,7 +235,12 @@ export function ErpShell({
             Vista previa — datos aún de ejemplo
           </span>
 
-          <form action={logout}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void cerrarSesion();
+            }}
+          >
             <button type="submit" className="erp-logout-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

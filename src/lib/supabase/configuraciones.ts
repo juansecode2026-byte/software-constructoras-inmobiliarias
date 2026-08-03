@@ -2,7 +2,7 @@
 // supabase/migrations/0003_configuraciones_basicas.sql): empresa, parametros por
 // modulo, personas (terceros) y catalogo de recursos con su arbol de clases.
 
-import { createClient } from "./server";
+import { createClient } from "./client";
 
 // ---------- empresa ----------
 

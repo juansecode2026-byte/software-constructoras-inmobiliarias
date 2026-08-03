@@ -1,7 +1,7 @@
 // Acceso al bucket privado del ERP (ver supabase/migrations/0007_perfil_usuario_storage.sql).
 // El bucket no es publico: las imagenes se muestran con URLs firmadas de corta duracion.
 
-import { createClient } from "./server";
+import { createClient } from "./client";
 
 export const BUCKET = "erp-archivos";
 

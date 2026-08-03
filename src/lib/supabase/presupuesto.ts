@@ -2,7 +2,7 @@
 // Usadas por src/app/erp/**, reemplazando los datos de ejemplo que antes vivian
 // hardcodeados en src/features/erp/data.ts.
 
-import { createClient } from "./server";
+import { createClient } from "./client";
 
 // Single-tenant por ahora (ver docs/diagnostico-erp.md): una sola empresa real.
 // Se resuelve por nombre en vez de hardcodear un uuid.

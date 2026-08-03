@@ -1,7 +1,7 @@
 // Perfil del usuario: lo que se imprime en documentos aprobados (nombre, cargo,
 // firma). auth.users solo guarda email y clave.
 
-import { createClient } from "./server";
+import { createClient } from "./client";
 
 export interface UsuarioPerfil {
   id: string;

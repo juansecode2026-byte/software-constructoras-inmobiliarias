@@ -4,7 +4,7 @@
 // obtenerSolicitudCotizacionDetalle a partir de solicitud_cotizacion_precios,
 // no vive en una tabla propia.
 
-import { createClient } from "./server";
+import { createClient } from "./client";
 
 function nombreProveedor(p: {
   tipo_persona: "empresa" | "natural";

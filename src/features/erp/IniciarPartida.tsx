@@ -1,4 +1,3 @@
-"use client";
 
 import { useActionState, useState } from "react";
 import { formatoMoneda } from "@/features/erp/format";
