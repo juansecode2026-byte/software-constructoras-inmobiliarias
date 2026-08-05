@@ -5,8 +5,8 @@ tabla X?" sin leer las migraciones en secuencia.
 
 | Archivo | Contenido |
 |---|---|
-| `01_tablas.sql` | Las 33 tablas del esquema `public`, con sus columnas y constraints actuales |
-| `02_rls.sql` | Activación de RLS y sus 33 políticas (las 4 del bucket `erp-archivos` viven en el esquema `storage`, no aquí) |
+| `01_tablas.sql` | Las 36 tablas del esquema `public`, con sus columnas y constraints actuales |
+| `02_rls.sql` | Activación de RLS y sus 38 políticas (las 4 del bucket `erp-archivos` viven en el esquema `storage`, no aquí) |
 
 **No se edita a mano.** Un cambio de esquema se hace agregando una migración en
 `supabase/migrations/`; estos archivos se regeneran después.

@@ -1,5 +1,5 @@
 -- Row Level Security: estado actual. GENERADO, no editar a mano.
--- Politicas: 33
+-- Politicas: 38
 
 alter table areas enable row level security;
 alter table configuraciones enable row level security;
@@ -11,6 +11,8 @@ alter table orden_compra_lineas enable row level security;
 alter table ordenes_compra enable row level security;
 alter table partida_recursos enable row level security;
 alter table partidas enable row level security;
+alter table perfil_permisos enable row level security;
+alter table perfiles enable row level security;
 alter table persona_archivos enable row level security;
 alter table persona_contactos enable row level security;
 alter table persona_datos_bancarios enable row level security;
@@ -33,6 +35,7 @@ alter table solicitudes_cotizacion enable row level security;
 alter table solicitudes_recursos enable row level security;
 alter table tipos_porcentaje enable row level security;
 alter table urgencias enable row level security;
+alter table usuario_obras enable row level security;
 alter table usuario_perfil enable row level security;
 
 create policy "autenticados leen y escriben" on areas
@@ -55,6 +58,10 @@ create policy "autenticados leen y escriben" on partida_recursos
   for all using ((auth.role() = 'authenticated'::text)) with check ((auth.role() = 'authenticated'::text));
 create policy "autenticados leen y escriben" on partidas
   for all using ((auth.role() = 'authenticated'::text)) with check ((auth.role() = 'authenticated'::text));
+create policy "autenticados leen permisos" on perfil_permisos
+  for select using ((auth.role() = 'authenticated'::text));
+create policy "autenticados leen perfiles" on perfiles
+  for select using ((auth.role() = 'authenticated'::text));
 create policy "autenticados leen y escriben" on persona_archivos
   for all using ((auth.role() = 'authenticated'::text)) with check ((auth.role() = 'authenticated'::text));
 create policy "autenticados leen y escriben" on persona_contactos
@@ -99,5 +106,11 @@ create policy "autenticados leen y escriben" on tipos_porcentaje
   for all using ((auth.role() = 'authenticated'::text)) with check ((auth.role() = 'authenticated'::text));
 create policy "autenticados leen y escriben" on urgencias
   for all using ((auth.role() = 'authenticated'::text)) with check ((auth.role() = 'authenticated'::text));
-create policy "autenticados leen y escriben" on usuario_perfil
-  for all using ((auth.role() = 'authenticated'::text)) with check ((auth.role() = 'authenticated'::text));
+create policy "autenticados leen accesos a obra" on usuario_obras
+  for select using ((auth.role() = 'authenticated'::text));
+create policy "autenticados leen perfiles de usuario" on usuario_perfil
+  for select using ((auth.role() = 'authenticated'::text));
+create policy "cada quien crea su propio perfil" on usuario_perfil
+  for insert with check ((auth_user_id = auth.uid()));
+create policy "cada quien edita su propio perfil" on usuario_perfil
+  for update using ((auth_user_id = auth.uid())) with check ((auth_user_id = auth.uid()));

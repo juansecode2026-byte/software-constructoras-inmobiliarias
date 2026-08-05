@@ -1,6 +1,6 @@
 -- Estado actual del esquema, GENERADO desde una base con todas las
 -- migraciones aplicadas. No editar a mano: ver supabase/schema/README.md.
--- Tablas: 33
+-- Tablas: 36
 
 create table areas (
   id uuid not null default gen_random_uuid(),
@@ -162,6 +162,29 @@ create table partidas (
   codigo text not null,
   nombre text not null,
   unidad text not null,
+  created_at timestamptz not null default now(),
+  foreign key (empresa_id) references empresas(id) on delete cascade,
+  primary key (id),
+  unique (empresa_id, codigo)
+);
+
+create table perfil_permisos (
+  id uuid not null default gen_random_uuid(),
+  perfil_id uuid not null,
+  modulo text not null,
+  accion text not null,
+  check ((accion = any (array['ver'::text, 'crear'::text, 'editar'::text, 'eliminar'::text, 'aprobar'::text]))),
+  foreign key (perfil_id) references perfiles(id) on delete cascade,
+  primary key (id),
+  unique (perfil_id, modulo, accion)
+);
+
+create table perfiles (
+  id uuid not null default gen_random_uuid(),
+  empresa_id uuid not null,
+  codigo text not null,
+  nombre text not null,
+  descripcion text,
   created_at timestamptz not null default now(),
   foreign key (empresa_id) references empresas(id) on delete cascade,
   primary key (id),
@@ -542,6 +565,17 @@ create table urgencias (
   unique (empresa_id, nombre)
 );
 
+create table usuario_obras (
+  id uuid not null default gen_random_uuid(),
+  auth_user_id uuid not null,
+  obra_id uuid not null,
+  created_at timestamptz not null default now(),
+  foreign key (auth_user_id) references auth.users(id) on delete cascade,
+  foreign key (obra_id) references obras(id) on delete cascade,
+  primary key (id),
+  unique (auth_user_id, obra_id)
+);
+
 create table usuario_perfil (
   id uuid not null default gen_random_uuid(),
   auth_user_id uuid not null,
@@ -552,8 +586,11 @@ create table usuario_perfil (
   firma_digital_url text,
   notas text,
   created_at timestamptz not null default now(),
+  perfil_id uuid,
+  acceso_todas_las_obras boolean not null default false,
   foreign key (auth_user_id) references auth.users(id) on delete cascade,
   foreign key (empresa_id) references empresas(id) on delete cascade,
+  foreign key (perfil_id) references perfiles(id) on delete restrict,
   primary key (id),
   unique (auth_user_id)
 );

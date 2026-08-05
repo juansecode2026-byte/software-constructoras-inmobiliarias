@@ -134,10 +134,49 @@ obra que cambie; el presupuesto y sus órdenes de compra, no.
 Por eso solo 13 de las 33 tablas llevan `empresa_id`: **las demás cuelgan de
 `obra`, que es donde corresponde.** No es una deuda del diseño.
 
-Lo que sí queda abierto es el **eje de permisos**: con varios proyectos, la
-pregunta relevante no es "de qué empresa es este usuario" sino "en qué obras
-puede trabajar". Por ejemplo, si el coordinador de Obra Miramar debe poder
-aprobar órdenes de compra de Los Aromos. Sin decidir todavía.
+## Usuarios, perfiles y permisos
+
+Sigue el modelo del ERP de referencia (`docs/diagnostico-erp.md` →
+Administración > Usuarios): **perfiles como plantilla, permisos por feature, y
+acceso a datos filtrado por obra.** Se omite el nivel "carpeta" del referente
+porque el ERP todavía no lo usa.
+
+| Tabla | Qué guarda |
+|---|---|
+| `perfiles` | Plantillas por empresa: `admin`, `jefe_obra`, `comprador`, `consulta` |
+| `perfil_permisos` | Qué puede hacer cada perfil: `modulo` × `accion` |
+| `usuario_perfil.perfil_id` | Qué perfil tiene cada usuario |
+| `usuario_perfil.acceso_todas_las_obras` | Para gerencia: evita darlo de alta en cada obra nueva |
+| `usuario_obras` | En qué proyectos trabaja |
+
+**Acciones:** `ver`, `crear`, `editar`, `eliminar`, `aprobar`.
+**Módulos:** `presupuesto`, `compras`, `personas`, `recursos`, `configuraciones`,
+`empresa`. Es una columna `text`, no un enum, porque el sidebar ya anticipa
+Recepciones, Bodega, Subcontratos, Tesorería y varios más
+(`src/features/erp/data.ts`) que se irán habilitando sin migración de esquema.
+
+La **presencia de la fila en `perfil_permisos` concede** el permiso; su ausencia
+lo niega. Es más simple de auditar que un booleano con tres estados posibles.
+
+Los perfiles se siembran con la empresa (`sembrar_perfiles()`, llamada desde
+`crear_empresa()`), igual que los catálogos. Lo que distingue a `jefe_obra` y
+`comprador` es justamente lo que **no** pueden hacer: el jefe de obra aprueba
+presupuesto pero no compra; el comprador emite órdenes pero no toca el
+presupuesto.
+
+### Consultarlo desde el backend
+
+```sql
+usuario_puede(auth_user_id, 'compras', 'aprobar')  -- boolean
+usuario_accede_obra(auth_user_id, obra_id)         -- boolean
+```
+
+Existen para que la regla no quede reimplementada en cada Edge Function.
+
+**Quien hace cumplir los permisos es el backend, no RLS.** RLS no puede expresar
+"aprobar" como acción: para Postgres aprobar una orden de compra es un `update`
+como cualquier otro. Las políticas cubren el acceso a la tabla; la regla de
+negocio vive en el código.
 
 ## Estado de seguridad
 
@@ -148,9 +187,9 @@ for all using (auth.role() = 'authenticated')
   with check (auth.role() = 'authenticated')
 ```
 
-Es decir: **cualquier usuario autenticado lee y escribe todo.** No hay distinción
-de rol ni de obra. Lo mismo aplica a las 4 políticas del bucket `erp-archivos`.
-La migración `0001` lo documenta como atajo deliberado de V1.
+Es decir: **cualquier usuario autenticado lee y escribe casi todo.** La migración
+`0001` lo documenta como atajo deliberado de V1. Lo mismo aplica a las 4
+políticas del bucket `erp-archivos`.
 
 Como el sistema es de una sola empresa, todo usuario con sesión es alguien de la
 casa — así que esto no expone datos a terceros. Lo que queda suelto es la
@@ -158,10 +197,15 @@ autorización **dentro** de la empresa:
 
 - Cualquiera puede aprobar una orden de compra o modificar un presupuesto. Eso
   vacía de sentido el gate de autorización por sobrecosto de *Inicio de Partida*
-  (ver `docs/proceso-control-costos.md`).
-- Cualquiera puede sobrescribir el `usuario_perfil` de otro, **incluida su firma
-  digital** — que es justo lo que se estampa en los documentos aprobados.
-- Nadie está acotado a las obras en las que realmente trabaja.
+  (ver `docs/proceso-control-costos.md`). El modelo de permisos ya existe; falta
+  que el backend lo haga cumplir (fases 3-4).
+- Nadie está acotado a las obras en las que realmente trabaja, por lo mismo.
+
+**Ya cerrado** (`0014`): `usuario_perfil` dejó de ser escribible por cualquiera.
+Cada usuario solo puede crear y editar el suyo, así que ya no se puede pisar la
+**firma digital** de otro — que es lo que se estampa en los documentos
+aprobados. Leer los perfiles ajenos sigue permitido: hace falta para mostrar
+quién aprobó cada documento.
 
 Lo que **no** es un problema: un visitante anónimo. `auth.role()` no es
 `authenticated` para él, así que RLS lo bloquea aunque conozca los nombres de las
@@ -171,7 +215,6 @@ tablas.
 
 | Tema | Estado |
 |---|---|
-| RLS sin filtro por empresa ni roles | Pendiente — Fase 1 del plan de separación |
-| No existe tabla de membresía usuario ↔ empresa ↔ rol | Pendiente — bloquea lo anterior |
+| Los permisos existen pero nadie los hace cumplir | El modelo está en `perfiles`/`perfil_permisos`/`usuario_obras`; el backend los aplicará en las fases 3-4 |
 | `usuario_perfil` no se crea al registrarse un usuario nuevo | Pendiente: hoy solo lo creó `0007` para los usuarios que existían entonces |
 | Sin índices en columnas FK | Postgres solo indexa PK y `unique`. Con las consultas anidadas del ERP, esto se va a notar al crecer los datos |
