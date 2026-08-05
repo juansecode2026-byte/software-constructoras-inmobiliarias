@@ -63,8 +63,17 @@ insert into persona_direcciones (id, persona_id, tipo, nombre, direccion, region
 insert into persona_contactos (direccion_id, nombre, cargo, celular, email) values
   ('00000000-0000-0000-0000-000000000401', 'Ricardo Pena', 'Jefe de ventas', '+56 9 8213 5540', 'rpena@acerosdelsur.cl');
 
-insert into persona_datos_bancarios (persona_id, banco, tipo_cuenta, numero_cuenta, forma_pago) values
-  ('00000000-0000-0000-0000-000000000301', 'Banco de Chile', 'corriente', '00-123-4567-8', '60 dias contra factura');
+-- 0006 quito "forma_pago" de aqui: la condicion de pago es del rol proveedor,
+-- no de la cuenta bancaria, y vive en personas.forma_pago_id.
+insert into persona_datos_bancarios (persona_id, banco, tipo_cuenta, numero_cuenta) values
+  ('00000000-0000-0000-0000-000000000301', 'Banco de Chile', 'corriente', '00-123-4567-8');
+
+update personas set forma_pago_id = (
+  select id from formas_pago
+  where empresa_id = '00000000-0000-0000-0000-000000000001'
+    and nombre = '60 dias contra factura'
+)
+where id = '00000000-0000-0000-0000-000000000301';
 
 -- ---------- embalaje de ejemplo ----------
 

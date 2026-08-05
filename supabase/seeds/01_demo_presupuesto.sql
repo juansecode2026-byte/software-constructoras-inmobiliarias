@@ -1,8 +1,14 @@
 -- Seed que reproduce los mismos datos de ejemplo que hoy viven hardcodeados
 -- en src/features/erp/data.ts, para no perder el demo al conectar el backend real.
+--
+-- SOLO PARA ENTORNOS DE DESARROLLO. Un cliente real se da de alta con
+-- crear_empresa('Nombre real') y carga sus propios datos.
+-- Orden de ejecucion: 01 -> 02 -> 03 -> 04, despues de aplicar las migraciones.
 
-insert into empresas (id, nombre) values
-  ('00000000-0000-0000-0000-000000000001', 'Constructora Andes');
+-- Crea la empresa CON sus catalogos (formas de pago, urgencias, estados de
+-- presupuesto, tipos de porcentaje). Ver 0013_crear_empresa.sql: insertar en
+-- "empresas" a secas dejaria el demo sin catalogos.
+select crear_empresa('Constructora Andes', '00000000-0000-0000-0000-000000000001');
 
 insert into obras (id, empresa_id, nombre, estado) values
   ('00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000001', 'Obra Miramar', 'en_ejecucion'),
@@ -15,12 +21,20 @@ insert into presupuesto_carpetas (id, obra_id, parent_id, nombre) values
   ('00000000-0000-0000-0000-000000000023', '00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000021', 'Obra Miramar'),
   ('00000000-0000-0000-0000-000000000024', '00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000021', 'PPTO calidad especial');
 
-insert into presupuestos (id, obra_id, carpeta_id, numero, nombre, estado, vigente, version_tipo, presupuesto_original_id) values
-  ('00000000-0000-0000-0000-000000000031', '00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000023', 52, 'PPTO Miramar 02 (completo) - original', 'en_proceso', true, 'original', null);
+-- La columna "estado" (text) ya no existe: 0012 la reemplazo por estado_id
+-- contra el catalogo presupuesto_estados, que deja crear_empresa().
+insert into presupuestos (id, obra_id, carpeta_id, numero, nombre, estado_id, vigente, version_tipo, presupuesto_original_id) values
+  ('00000000-0000-0000-0000-000000000031', '00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000023', 52, 'PPTO Miramar 02 (completo) - original',
+    (select id from presupuesto_estados where empresa_id = '00000000-0000-0000-0000-000000000001' and nombre = 'En proceso'),
+    true, 'original', null);
 
-insert into presupuestos (id, obra_id, carpeta_id, numero, nombre, estado, vigente, version_tipo, presupuesto_original_id) values
-  ('00000000-0000-0000-0000-000000000032', '00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000023', 61, 'PPTO Miramar 02 (completo) - trabajo', 'en_proceso', true, 'trabajo', '00000000-0000-0000-0000-000000000031'),
-  ('00000000-0000-0000-0000-000000000033', '00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000023', 63, 'Accesorios de bano - matriz de partida', 'aprobado', true, 'trabajo', null);
+insert into presupuestos (id, obra_id, carpeta_id, numero, nombre, estado_id, vigente, version_tipo, presupuesto_original_id) values
+  ('00000000-0000-0000-0000-000000000032', '00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000023', 61, 'PPTO Miramar 02 (completo) - trabajo',
+    (select id from presupuesto_estados where empresa_id = '00000000-0000-0000-0000-000000000001' and nombre = 'En proceso'),
+    true, 'trabajo', '00000000-0000-0000-0000-000000000031'),
+  ('00000000-0000-0000-0000-000000000033', '00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000023', 63, 'Accesorios de bano - matriz de partida',
+    (select id from presupuesto_estados where empresa_id = '00000000-0000-0000-0000-000000000001' and nombre = 'Aprobado'),
+    true, 'trabajo', null);
 
 insert into areas (id, presupuesto_id, codigo, nombre, orden) values
   ('00000000-0000-0000-0000-000000000041', '00000000-0000-0000-0000-000000000033', '1', 'Accesorios de bano', 1);
