@@ -43,3 +43,7 @@ next-env.d.ts
 
 # vite
 /dist
+
+# supabase (estado local del CLI, no se versiona)
+supabase/.temp
+supabase/.branches
