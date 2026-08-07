@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import type { ObraFila } from "@/lib/supabase/presupuesto";
+import type { ObraFila } from "@/lib/api/presupuesto";
 import { estadoObraLabel } from "./format";
 import { navegacion, type ItemNav } from "./data";
 

@@ -1,11 +1,13 @@
-import { createClient } from "@/lib/supabase/client";
-import { obtenerEstadoInicioPartida } from "@/lib/supabase/presupuesto";
+import { api, ErrorApi } from "@/lib/api/client";
 
 export interface ResultadoAccion {
   error?: string;
   ok?: string;
 }
 
+// El backend vuelve a calcular el sobrecosto y decide si exige motivo — el
+// frontend ya no consulta obtenerEstadoInicioPartida antes de decidir, solo
+// manda lo que el usuario escribio y confia en la respuesta.
 export async function iniciarPartida(
   _estadoPrevio: ResultadoAccion,
   formData: FormData,
@@ -13,28 +15,14 @@ export async function iniciarPartida(
   const presupuestoPartidaId = String(formData.get("presupuestoPartidaId") ?? "");
   const motivo = String(formData.get("motivo") ?? "").trim();
 
-  const estado = await obtenerEstadoInicioPartida(presupuestoPartidaId);
-
-  if (estado.sobrecosto && !motivo) {
-    return {
-      error:
-        "Esta partida cuesta más en Trabajo que en el Original: se requiere un motivo de autorización antes de iniciarla.",
-    };
+  try {
+    const { ok } = await api.put<{ ok: string }>(`presupuesto/partidas/${presupuestoPartidaId}/iniciar`, {
+      presupuestoPartidaId,
+      motivo,
+    });
+    return { ok };
+  } catch (e) {
+    if (e instanceof ErrorApi) return { error: e.message };
+    return { error: "No se pudo iniciar la partida." };
   }
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("presupuesto_partidas")
-    .update({
-      iniciada: true,
-      iniciada_en: new Date().toISOString(),
-      autorizacion_motivo: estado.sobrecosto ? motivo : null,
-    })
-    .eq("id", presupuestoPartidaId);
-
-  if (error) return { error: `No se pudo iniciar la partida: ${error.message}` };
-
-  // Antes revalidatePath refrescaba la pagina desde el servidor; en SPA la
-  // pantalla vuelve a consultar con el `recargar` de useAsync.
-  return { ok: "Partida iniciada." };
 }

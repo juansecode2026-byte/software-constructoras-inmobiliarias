@@ -1,6 +1,6 @@
 
 import { useMemo, useState } from "react";
-import type { PresupuestoFila } from "@/lib/supabase/presupuesto";
+import type { PresupuestoFila } from "@/lib/api/presupuesto";
 import { BudgetTable } from "./BudgetTable";
 import { CarpetaTree, idsDescendientes, type CarpetaTreeFila } from "./CarpetaTree";
 

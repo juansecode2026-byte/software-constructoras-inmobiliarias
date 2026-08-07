@@ -6,7 +6,7 @@ import {
   type AreaConPartidas,
   type GrupoFila,
   type PartidaEnAreaFila,
-} from "@/lib/supabase/presupuesto";
+} from "@/lib/api/presupuesto";
 import { formatoMoneda, estadoPresupuestoClase } from "@/features/erp/format";
 
 interface FilaArbol {

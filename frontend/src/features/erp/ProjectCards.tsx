@@ -1,5 +1,5 @@
 
-import type { ObraFila } from "@/lib/supabase/presupuesto";
+import type { ObraFila } from "@/lib/api/presupuesto";
 import { estadoObraClase, estadoObraLabel, formatoMoneda } from "./format";
 import { useProyecto } from "./ErpShell";
 

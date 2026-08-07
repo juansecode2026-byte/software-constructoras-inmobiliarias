@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import { obtenerComparacionOriginalTrabajo } from "@/lib/supabase/presupuesto";
+import { obtenerComparacionOriginalTrabajo } from "@/lib/api/presupuesto";
 import { formatoMoneda } from "@/features/erp/format";
 import { useAsync, PantallaCargando, PantallaError } from "@/hooks/useAsync";
 

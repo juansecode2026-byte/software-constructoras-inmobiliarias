@@ -1,6 +1,6 @@
 
 import { useNavigate } from "react-router-dom";
-import type { PresupuestoFila } from "@/lib/supabase/presupuesto";
+import type { PresupuestoFila } from "@/lib/api/presupuesto";
 import { estadoPresupuestoClase, formatoMoneda } from "./format";
 
 export function BudgetTable({ presupuestos }: { presupuestos: PresupuestoFila[] }) {

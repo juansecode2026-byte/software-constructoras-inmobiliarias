@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { listarPresupuestosConOriginal, obtenerObraPorNombre } from "@/lib/supabase/presupuesto";
+import { listarPresupuestosConOriginal, obtenerObraPorNombre } from "@/lib/api/presupuesto";
 import { useAsync, PantallaCargando, PantallaError } from "@/hooks/useAsync";
 
 export default function InformesPresupuestoPage() {

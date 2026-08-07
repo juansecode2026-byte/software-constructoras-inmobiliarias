@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { listarSolicitudesRecursos } from "@/lib/api/compras";
-import { obtenerObraPorNombre } from "@/lib/supabase/presupuesto";
+import { obtenerObraPorNombre } from "@/lib/api/presupuesto";
 import { estadoAprobacionClase, estadoAprobacionLabel, estadoDocumentoClase, estadoDocumentoLabel } from "@/features/erp/format";
 import { useAsync, PantallaCargando, PantallaError } from "@/hooks/useAsync";
 

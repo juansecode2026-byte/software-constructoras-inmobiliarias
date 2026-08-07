@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { listarPartidasObra, obtenerObraPorNombre } from "@/lib/supabase/presupuesto";
+import { listarPartidasObra, obtenerObraPorNombre } from "@/lib/api/presupuesto";
 import { formatoMoneda } from "@/features/erp/format";
 import { useAsync, PantallaCargando, PantallaError } from "@/hooks/useAsync";
 

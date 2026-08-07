@@ -1,13 +1,10 @@
 import { avancePorArea, insightsAgente, kpisInicio } from "@/features/erp/data";
 import { ProjectCards } from "@/features/erp/ProjectCards";
-import { listarObras, obtenerEmpresaId } from "@/lib/supabase/presupuesto";
+import { listarObras } from "@/lib/api/presupuesto";
 import { useAsync, PantallaCargando, PantallaError } from "@/hooks/useAsync";
 
 export default function InicioPage() {
-  const { datos, cargando, error } = useAsync(async () => {
-    const empresaId = await obtenerEmpresaId();
-    return listarObras(empresaId);
-  }, []);
+  const { datos, cargando, error } = useAsync(() => listarObras(), []);
 
   if (cargando) return <PantallaCargando />;
   if (error) return <PantallaError error={error} />;

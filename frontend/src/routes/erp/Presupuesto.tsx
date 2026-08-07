@@ -1,5 +1,5 @@
 import { PresupuestoExplorer } from "@/features/erp/PresupuestoExplorer";
-import { listarCarpetas, listarPresupuestos, obtenerObraPorNombre } from "@/lib/supabase/presupuesto";
+import { listarCarpetas, listarPresupuestos, obtenerObraPorNombre } from "@/lib/api/presupuesto";
 import { useAsync, PantallaCargando, PantallaError } from "@/hooks/useAsync";
 
 export default function PresupuestoPage() {

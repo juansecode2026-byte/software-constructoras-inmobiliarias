@@ -2,7 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { AgentCallout } from "@/features/erp/AgentCallout";
 import { IniciarPartida } from "@/features/erp/IniciarPartida";
 import { formatoMoneda } from "@/features/erp/format";
-import { obtenerEstadoInicioPartida, obtenerPartidaDetalle } from "@/lib/supabase/presupuesto";
+import { obtenerEstadoInicioPartida, obtenerPartidaDetalle } from "@/lib/api/presupuesto";
 import { useAsync, PantallaCargando, PantallaError } from "@/hooks/useAsync";
 import { iniciarPartida } from "./partidaActions";
 
