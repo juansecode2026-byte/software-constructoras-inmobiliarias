@@ -17,21 +17,25 @@ cualquier parte del proyecto.
 
 ## Dónde vive cada cosa
 
+El repositorio está partido en dos mitades: **`frontend/`** es la aplicación, y
+**`supabase/`** es la base de datos y (próximamente) el backend.
+
 | Carpeta | Contenido |
 |---|---|
-| `src/routes/` | Páginas, una por ruta de React Router |
-| `src/features/erp/` | Componentes de UI reutilizables del ERP |
-| `src/hooks/` | Hooks de React (`useAsync` para carga de datos) |
-| `src/lib/supabase/` | Acceso a datos y consultas tipadas |
-| `src/lib/auth/` | Sesión, guards de ruta, cierre por inactividad |
-| `src/styles/` | CSS global y por módulo |
+| `frontend/src/routes/` | Páginas, una por ruta de React Router |
+| `frontend/src/features/erp/` | Componentes de UI reutilizables del ERP |
+| `frontend/src/hooks/` | Hooks de React (`useAsync` para carga de datos) |
+| `frontend/src/lib/supabase/` | Acceso a datos y consultas tipadas |
+| `frontend/src/lib/auth/` | Sesión, guards de ruta, cierre por inactividad |
+| `frontend/src/styles/` | CSS global y por módulo |
 | `supabase/migrations/` | Historial de esquema — ver `docs/base-de-datos.md` |
 | `supabase/schema/` | Estado actual consolidado (generado, no se edita) |
 | `supabase/seeds/` | Datos demo, solo para desarrollo |
 | `docs/` | Documentación funcional y técnica |
 
-Esta estructura cambia con el plan de separación backend/frontend: la capa de
-datos se mueve a `supabase/functions/` y el frontend a `frontend/`.
+Falta el último paso de la separación: `frontend/src/lib/supabase/` se muda a
+`supabase/functions/` como Edge Functions, y el frontend pasa a llamarlas por
+HTTP en vez de consultar las tablas directamente.
 
 ## Reglas
 
@@ -47,11 +51,19 @@ datos se mueve a `supabase/functions/` y el frontend a `frontend/`.
 
 ## Comandos
 
+Desde la **raíz del repositorio** (delegan a `frontend/`):
+
 ```bash
-npm run dev        # servidor de desarrollo en localhost:3000
-npm run build      # typecheck + build de producción
-npx tsc --noEmit   # solo typecheck
+npm run install:frontend  # instalar dependencias la primera vez
+npm run dev               # servidor de desarrollo en localhost:3000
+npm run build             # typecheck + build de producción
+npm run typecheck         # solo typecheck
+npm run db:list           # estado de migraciones local vs remoto
+npm run db:push           # aplicar migraciones pendientes a Supabase
 ```
+
+Los comandos de `supabase` necesitan estar en la raíz del repositorio: el
+vínculo con el proyecto vive en `supabase/`, no en la carpeta padre.
 
 ## Documentación de referencia
 

@@ -2,28 +2,15 @@
   "name": "software-constructoras-inmobiliarias",
   "version": "0.1.0",
   "private": true,
+  "description": "ERP a la medida para constructoras e inmobiliarias. El frontend vive en frontend/ y el backend con la base de datos en supabase/.",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.110.8",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "react-router-dom": "^7.18.2"
-  },
-  "devDependencies": {
-    "@tailwindcss/vite": "^4.3.3",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@vitejs/plugin-react": "^6.0.5",
-    "eslint": "^9",
-    "tailwindcss": "^4",
-    "typescript": "^5",
-    "vite": "^8.2.0"
-  },
-  "type": "module"
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview",
+    "lint": "npm --prefix frontend run lint",
+    "typecheck": "npm --prefix frontend run typecheck",
+    "install:frontend": "npm --prefix frontend install",
+    "db:list": "supabase migration list",
+    "db:push": "supabase db push"
+  }
 }

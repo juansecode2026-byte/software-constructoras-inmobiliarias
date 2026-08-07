@@ -9,7 +9,7 @@ Referencia única del esquema. Antes esta información estaba repartida entre
 | Carpeta | Qué es | Se edita a mano |
 |---|---|---|
 | `supabase/migrations/` | Historial ordenado de cambios. Se aplica en secuencia. | Solo agregando archivos nuevos — **nunca** se modifica uno ya aplicado |
-| `supabase/schema/` | Retrato del estado actual, para consultar sin leer 9 migraciones | No: se regenera |
+| `supabase/schema/` | Retrato del estado actual, para consultar sin leer las migraciones en secuencia | No: se regenera |
 | `supabase/seeds/` | Datos de ejemplo para desarrollo | Sí |
 
 ### Levantar un entorno desde cero
@@ -27,12 +27,15 @@ El orden importa: `01` crea la empresa y todo lo demás cuelga de ella.
 
 ### Regenerar `supabase/schema/`
 
-Hoy se generó extrayendo el DDL de las migraciones. Cuando el proyecto esté
-vinculado (`supabase link`), la fuente correcta pasa a ser la base real:
+El proyecto ya está vinculado (`shqirjnngpzndscwfcct`), así que la fuente
+correcta es la base real:
 
 ```bash
 supabase db dump --schema public > supabase/schema/01_tablas.sql
 ```
+
+Nunca regenerarlo extrayendo texto de las migraciones: se pierden los
+`alter table` multilínea y los `drop column`.
 
 ## Alta de una empresa
 
@@ -131,7 +134,7 @@ clientes), `cuentas_contables`, `configuraciones`, y los catálogos
 El precio de un material y el proveedor que lo vende son los mismos cambie la
 obra que cambie; el presupuesto y sus órdenes de compra, no.
 
-Por eso solo 13 de las 33 tablas llevan `empresa_id`: **las demás cuelgan de
+Por eso solo 14 de las 36 tablas llevan `empresa_id`: **las demás cuelgan de
 `obra`, que es donde corresponde.** No es una deuda del diseño.
 
 ## Usuarios, perfiles y permisos
@@ -153,7 +156,7 @@ porque el ERP todavía no lo usa.
 **Módulos:** `presupuesto`, `compras`, `personas`, `recursos`, `configuraciones`,
 `empresa`. Es una columna `text`, no un enum, porque el sidebar ya anticipa
 Recepciones, Bodega, Subcontratos, Tesorería y varios más
-(`src/features/erp/data.ts`) que se irán habilitando sin migración de esquema.
+(`frontend/src/features/erp/data.ts`) que se irán habilitando sin migración de esquema.
 
 La **presencia de la fila en `perfil_permisos` concede** el permiso; su ausencia
 lo niega. Es más simple de auditar que un booleano con tres estados posibles.
@@ -180,7 +183,7 @@ negocio vive en el código.
 
 ## Estado de seguridad
 
-**RLS está activo en las 33 tablas**, pero todas las políticas son la misma:
+**RLS está activo en las 36 tablas**, pero todas las políticas son la misma:
 
 ```sql
 for all using (auth.role() = 'authenticated')

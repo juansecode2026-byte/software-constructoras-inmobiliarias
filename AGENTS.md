@@ -11,7 +11,7 @@ Consecuencias prácticas:
 - **No hay servidor.** Todo corre en el navegador: no existe `"use server"`,
   `revalidatePath`, `cookies()` ni middleware.
 - Para navegar: `<Link to>` y `useNavigate()` de `react-router-dom`.
-- Para cargar datos: el hook `useAsync` de `src/hooks/useAsync.tsx`, que expone
+- Para cargar datos: el hook `useAsync` de `frontend/src/hooks/useAsync.tsx`, que expone
   `{ datos, cargando, error, recargar }`. `recargar()` reemplaza lo que antes
   hacía `revalidatePath`.
 - Variables de entorno: `import.meta.env.VITE_*`, no `process.env.NEXT_PUBLIC_*`.
