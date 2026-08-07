@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import { obtenerSolicitudRecursoDetalle } from "@/lib/supabase/compras";
+import { obtenerSolicitudRecursoDetalle } from "@/lib/api/compras";
 import { estadoAprobacionClase, estadoAprobacionLabel, estadoDocumentoClase, estadoDocumentoLabel } from "@/features/erp/format";
 import { useAsync, PantallaCargando, PantallaError } from "@/hooks/useAsync";
 

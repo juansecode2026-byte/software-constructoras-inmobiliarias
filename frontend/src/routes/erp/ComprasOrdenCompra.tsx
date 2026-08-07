@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { listarOrdenesCompra } from "@/lib/supabase/compras";
+import { listarOrdenesCompra } from "@/lib/api/compras";
 import { obtenerObraPorNombre } from "@/lib/supabase/presupuesto";
 import { estadoAprobacionClase, estadoAprobacionLabel, estadoDocumentoClase, estadoDocumentoLabel, formatoMoneda } from "@/features/erp/format";
 import { useAsync, PantallaCargando, PantallaError } from "@/hooks/useAsync";
