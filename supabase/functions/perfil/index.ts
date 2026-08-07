@@ -16,6 +16,7 @@ import { error, json, manejar } from "../_shared/http.ts";
 
 const COLUMNAS = "id, nombre, cargo, telefono, firma_digital_url, notas";
 
+// AUTORIZACION: filtra por auth_user_id (dueño de la fila), no hace falta exigirPermiso
 async function obtener(identidad: Identidad, origen: string | null): Promise<Response> {
   const { data, error: err } = await db()
     .from("usuario_perfil")
@@ -27,6 +28,7 @@ async function obtener(identidad: Identidad, origen: string | null): Promise<Res
   return json(data, origen);
 }
 
+// AUTORIZACION: filtra por auth_user_id (dueño de la fila)
 async function guardar(
   identidad: Identidad,
   req: Request,
@@ -59,6 +61,7 @@ async function guardar(
 // El archivo lo sube el navegador directo al bucket (que tiene sus propias
 // politicas); aca solo se registra la ruta resultante. Asi no hay que pasar
 // 5 MB por la funcion.
+// AUTORIZACION: filtra por auth_user_id (dueño de la fila)
 async function guardarFirma(
   identidad: Identidad,
   req: Request,
@@ -82,6 +85,7 @@ async function guardarFirma(
   return json({ ok: "Firma actualizada.", anterior }, origen);
 }
 
+// AUTORIZACION: filtra por auth_user_id (dueño de la fila)
 async function quitarFirma(identidad: Identidad, origen: string | null): Promise<Response> {
   const anterior = await rutaFirmaActual(identidad);
 
@@ -97,6 +101,7 @@ async function quitarFirma(identidad: Identidad, origen: string | null): Promise
 // Se devuelve al frontend para que borre el archivo viejo despues de que la
 // base ya apunta al nuevo: si se borrara antes y fallara el update, la firma
 // se perderia sin reemplazo.
+// AUTORIZACION: helper interno, filtra por auth_user_id (dueño de la fila)
 async function rutaFirmaActual(identidad: Identidad): Promise<string | null> {
   const { data } = await db()
     .from("usuario_perfil")

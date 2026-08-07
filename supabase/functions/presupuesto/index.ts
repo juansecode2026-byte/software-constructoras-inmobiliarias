@@ -18,11 +18,13 @@ import { error, json, manejar } from "../_shared/http.ts";
 
 // ---------- resolver la obra de un id, para autorizar ----------
 
+// AUTORIZACION: solo resuelve un obra_id para que el llamador decida si autoriza; no expone datos del presupuesto en si
 async function obraDePresupuesto(presupuestoId: string): Promise<string | null> {
   const { data } = await db().from("presupuestos").select("obra_id").eq("id", presupuestoId).maybeSingle();
   return data?.obra_id ?? null;
 }
 
+// AUTORIZACION: idem obraDePresupuesto, solo resuelve el obra_id
 async function obraDePartida(presupuestoPartidaId: string): Promise<string | null> {
   const { data } = await db()
     .from("presupuesto_partidas")
@@ -216,6 +218,7 @@ async function listarAreasYPartidas(identidad: Identidad, presupuestoId: string,
 
 // ---------- comparacion Original-Trabajo ----------
 
+// AUTORIZACION: helper interno, se llama despues de que obtenerComparacionOriginalTrabajo ya valido exigirAccesoObra
 async function cargarAreasParaComparacion(presupuestoId: string) {
   const { data, error: err } = await db()
     .from("areas")
@@ -525,6 +528,7 @@ async function listarPresupuestosConOriginal(
   return json(filas, origen);
 }
 
+// AUTORIZACION: helper interno, se llama despues de que listarEstadoInicioObra ya valido exigirPermiso + exigirAccesoObra
 async function listarAreasConPartidasGate(presupuestoId: string) {
   const { data, error: err } = await db()
     .from("areas")

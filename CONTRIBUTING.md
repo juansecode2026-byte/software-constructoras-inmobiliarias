@@ -60,10 +60,34 @@ npm run build             # typecheck + build de producción
 npm run typecheck         # solo typecheck
 npm run db:list           # estado de migraciones local vs remoto
 npm run db:push           # aplicar migraciones pendientes a Supabase
+npm run check:permisos    # alarma: funciones del backend sin chequeo de autorizacion
 ```
 
 Los comandos de `supabase` necesitan estar en la raíz del repositorio: el
 vínculo con el proyecto vive en `supabase/`, no en la carpeta padre.
+
+## Antes de desplegar una Edge Function
+
+Como `supabase/functions/_shared/db.ts` usa `service_role` (ignora RLS por
+completo), la única barrera real contra un endpoint abierto a cualquiera es
+que su código llame a `exigirPermiso()`/`exigirAccesoObra()`. No hay ningún
+respaldo si a alguien se le olvida.
+
+1. **`npm run check:permisos`** — recorre cada función y avisa si toca `db()`
+   sin ningún chequeo de autorización visible. Si una función deliberadamente
+   no necesita permiso (ej. filtra por `auth_user_id`, o es un helper interno
+   llamado después de que el caller ya validó acceso), marcarla con un
+   comentario `// AUTORIZACION: <por qué>` justo antes de la función — el
+   script lo reconoce como excepción documentada, no la aprueba en silencio.
+2. **Dominio de producción en CORS** — no se hardcodea en el código. Se agrega
+   como variable de entorno del proyecto en el panel de Supabase:
+   *Edge Functions → Manage secrets → `ORIGENES_ADICIONALES`* (separados por
+   coma si hay más de uno, ej. `https://miapp.com,https://www.miapp.com`).
+   Aplica en el próximo request, sin redeploy — así el día del deploy real no
+   depende de acordarse de tocar `_shared/http.ts`.
+3. `supabase functions deploy <nombre>` — desplegar es un paso manual aparte
+   de `git push`; el código en el repo no sirve de nada hasta que se
+   despliega.
 
 ## Documentación de referencia
 

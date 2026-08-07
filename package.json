@@ -11,6 +11,8 @@
     "typecheck": "npm --prefix frontend run typecheck",
     "install:frontend": "npm --prefix frontend install",
     "db:list": "supabase migration list",
-    "db:push": "supabase db push"
+    "db:push": "supabase db push",
+    "check:permisos": "node scripts/verificar-permisos.mjs",
+    "predeploy:functions": "npm run check:permisos"
   }
 }
