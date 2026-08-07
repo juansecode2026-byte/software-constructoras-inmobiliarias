@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import { nombrePersona, obtenerPersonaDetalle, rolesPersona } from "@/lib/supabase/configuraciones";
+import { nombrePersona, obtenerPersonaDetalle, rolesPersona } from "@/lib/api/configuraciones";
 import { useAsync, PantallaCargando, PantallaError } from "@/hooks/useAsync";
 
 const OPCION_PAGO_LABEL: Record<string, string> = {

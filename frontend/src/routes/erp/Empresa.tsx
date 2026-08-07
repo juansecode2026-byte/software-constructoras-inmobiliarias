@@ -1,4 +1,4 @@
-import { obtenerEmpresaDetalle } from "@/lib/supabase/configuraciones";
+import { obtenerEmpresaDetalle } from "@/lib/api/configuraciones";
 import { urlFirmada } from "@/lib/supabase/storage";
 import { FormBloqueado, SubirImagen } from "@/features/erp/FormBloqueado";
 import { useAsync, PantallaCargando, PantallaError } from "@/hooks/useAsync";

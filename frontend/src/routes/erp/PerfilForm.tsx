@@ -1,7 +1,7 @@
 
 import { useActionState } from "react";
 import { guardarPerfil, subirFirma, type ResultadoAccion } from "./perfilActions";
-import type { UsuarioPerfil } from "@/lib/supabase/perfil";
+import type { UsuarioPerfil } from "@/lib/api/perfil";
 
 const ESTADO_INICIAL: ResultadoAccion = {};
 

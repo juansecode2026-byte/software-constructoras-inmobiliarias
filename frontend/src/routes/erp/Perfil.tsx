@@ -1,4 +1,4 @@
-import { obtenerPerfil } from "@/lib/supabase/perfil";
+import { obtenerPerfil } from "@/lib/api/perfil";
 import { urlFirmada } from "@/lib/supabase/storage";
 import { quitarFirma } from "./perfilActions";
 import { DatosForm, FirmaForm } from "./PerfilForm";

@@ -1,13 +1,9 @@
 import { Link } from "react-router-dom";
-import { listarPersonas, nombrePersona, rolesPersona } from "@/lib/supabase/configuraciones";
-import { obtenerEmpresaId } from "@/lib/supabase/presupuesto";
+import { listarPersonas, nombrePersona, rolesPersona } from "@/lib/api/configuraciones";
 import { useAsync, PantallaCargando, PantallaError } from "@/hooks/useAsync";
 
 export default function PersonasPage() {
-  const { datos, cargando, error } = useAsync(async () => {
-    const empresaId = await obtenerEmpresaId();
-    return listarPersonas(empresaId);
-  }, []);
+  const { datos, cargando, error } = useAsync(() => listarPersonas(), []);
 
   if (cargando) return <PantallaCargando />;
   if (error) return <PantallaError error={error} />;

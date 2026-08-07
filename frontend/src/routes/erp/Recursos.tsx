@@ -1,5 +1,4 @@
-import { listarClasesRecurso, listarRecursos, type ClaseRecursoFila } from "@/lib/supabase/configuraciones";
-import { obtenerEmpresaId } from "@/lib/supabase/presupuesto";
+import { listarRecursosYClases, type ClaseRecursoFila } from "@/lib/api/configuraciones";
 import { useAsync, PantallaCargando, PantallaError } from "@/hooks/useAsync";
 
 const TIPO_COSTO_LABEL: Record<string, string> = {
@@ -25,14 +24,7 @@ function aplanarArbol(clases: ClaseRecursoFila[]): { clase: ClaseRecursoFila; ni
 }
 
 export default function RecursosPage() {
-  const { datos, cargando, error } = useAsync(async () => {
-    const empresaId = await obtenerEmpresaId();
-    const [clases, recursos] = await Promise.all([
-      listarClasesRecurso(empresaId),
-      listarRecursos(empresaId),
-    ]);
-    return { clases, recursos };
-  }, []);
+  const { datos, cargando, error } = useAsync(() => listarRecursosYClases(), []);
 
   if (cargando) return <PantallaCargando />;
   if (error) return <PantallaError error={error} />;

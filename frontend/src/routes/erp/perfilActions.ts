@@ -1,5 +1,14 @@
+// Acciones de la pantalla Mi perfil.
+//
+// Ya no tocan la base: llaman al backend (supabase/functions/perfil). Lo unico
+// que sigue yendo directo a Supabase es la subida del archivo al bucket, que es
+// almacenamiento y no expone el esquema; el backend registra la ruta resultante.
 
-import { createClient } from "@/lib/supabase/client";
+import {
+  guardarPerfil as guardarPerfilApi,
+  quitarFirmaPerfil,
+  registrarFirma,
+} from "@/lib/api/perfil";
 import { borrarArchivo, subirArchivo, validarArchivo } from "@/lib/supabase/storage";
 
 export interface ResultadoAccion {
@@ -11,52 +20,28 @@ export async function guardarPerfil(
   _estadoPrevio: ResultadoAccion,
   formData: FormData,
 ): Promise<ResultadoAccion> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Sesión no válida. Vuelve a iniciar sesión." };
-
-  const nombre = String(formData.get("nombre") ?? "").trim();
-  if (!nombre) return { error: "El nombre es obligatorio: aparece en los documentos firmados." };
-
-  const { error } = await supabase
-    .from("usuario_perfil")
-    .update({
-      nombre,
+  try {
+    const { ok } = await guardarPerfilApi({
+      nombre: String(formData.get("nombre") ?? "").trim(),
       cargo: String(formData.get("cargo") ?? "").trim() || null,
       telefono: String(formData.get("telefono") ?? "").trim() || null,
       notas: String(formData.get("notas") ?? "").trim() || null,
-    })
-    .eq("auth_user_id", user.id);
-
-  if (error) return { error: `No se pudo guardar: ${error.message}` };
-
-  return { ok: "Perfil guardado." };
+    });
+    return { ok };
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
 }
 
 export async function subirFirma(
   _estadoPrevio: ResultadoAccion,
   formData: FormData,
 ): Promise<ResultadoAccion> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Sesión no válida. Vuelve a iniciar sesión." };
-
   const archivo = formData.get("firma");
   if (!(archivo instanceof File)) return { error: "Selecciona un archivo." };
 
   const problema = validarArchivo(archivo);
   if (problema) return { error: problema };
-
-  // la firma anterior se borra despues de subir la nueva, para no perderla si falla
-  const { data: perfil } = await supabase
-    .from("usuario_perfil")
-    .select("firma_digital_url")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
 
   let ruta: string;
   try {
@@ -65,43 +50,23 @@ export async function subirFirma(
     return { error: `No se pudo subir el archivo: ${(e as Error).message}` };
   }
 
-  const { error } = await supabase
-    .from("usuario_perfil")
-    .update({ firma_digital_url: ruta })
-    .eq("auth_user_id", user.id);
-
-  if (error) {
+  try {
+    // La firma anterior se borra despues de que la base apunta a la nueva, para
+    // no quedarse sin ninguna si algo falla en el medio.
+    const { ok, anterior } = await registrarFirma(ruta);
+    if (anterior) await borrarArchivo(anterior).catch(() => {});
+    return { ok };
+  } catch (e) {
     await borrarArchivo(ruta).catch(() => {});
-    return { error: `No se pudo guardar la firma: ${error.message}` };
+    return { error: (e as Error).message };
   }
-
-  if (perfil?.firma_digital_url) {
-    await borrarArchivo(perfil.firma_digital_url).catch(() => {});
-  }
-
-  return { ok: "Firma actualizada." };
 }
 
 export async function quitarFirma(): Promise<void> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
-
-  const { data: perfil } = await supabase
-    .from("usuario_perfil")
-    .select("firma_digital_url")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-
-  await supabase
-    .from("usuario_perfil")
-    .update({ firma_digital_url: null })
-    .eq("auth_user_id", user.id);
-
-  if (perfil?.firma_digital_url) {
-    await borrarArchivo(perfil.firma_digital_url).catch(() => {});
+  try {
+    const { anterior } = await quitarFirmaPerfil();
+    if (anterior) await borrarArchivo(anterior).catch(() => {});
+  } catch {
+    // La pantalla se recarga igual; si fallo, la firma sigue visible.
   }
-
 }

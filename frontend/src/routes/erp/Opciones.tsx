@@ -1,5 +1,4 @@
-import { listarConfiguraciones } from "@/lib/supabase/configuraciones";
-import { obtenerEmpresaId } from "@/lib/supabase/presupuesto";
+import { listarConfiguraciones } from "@/lib/api/configuraciones";
 import { useAsync, PantallaCargando, PantallaError } from "@/hooks/useAsync";
 
 const MODULO_LABEL: Record<string, string> = {
@@ -16,10 +15,7 @@ function formatoValor(valor: string): string {
 }
 
 export default function OpcionesPage() {
-  const { datos, cargando, error } = useAsync(async () => {
-    const empresaId = await obtenerEmpresaId();
-    return listarConfiguraciones(empresaId);
-  }, []);
+  const { datos, cargando, error } = useAsync(() => listarConfiguraciones(), []);
 
   if (cargando) return <PantallaCargando />;
   if (error) return <PantallaError error={error} />;
