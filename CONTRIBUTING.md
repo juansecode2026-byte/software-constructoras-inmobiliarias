@@ -18,24 +18,26 @@ cualquier parte del proyecto.
 ## Dónde vive cada cosa
 
 El repositorio está partido en dos mitades: **`frontend/`** es la aplicación, y
-**`supabase/`** es la base de datos y (próximamente) el backend.
+**`supabase/`** es el backend y la base de datos (ver `supabase/README.md`).
+La separación ya está completa y verificada en producción: el navegador ya no
+consulta ninguna tabla directo, solo llama a las Edge Functions por HTTP.
 
 | Carpeta | Contenido |
 |---|---|
 | `frontend/src/routes/` | Páginas, una por ruta de React Router |
 | `frontend/src/features/erp/` | Componentes de UI reutilizables del ERP |
 | `frontend/src/hooks/` | Hooks de React (`useAsync` para carga de datos) |
-| `frontend/src/lib/supabase/` | Acceso a datos y consultas tipadas |
+| `frontend/src/lib/api/` | Cliente HTTP hacia el backend (reemplaza a `lib/supabase/*` salvo `client.ts`, `idle.ts`, `storage.ts`) |
 | `frontend/src/lib/auth/` | Sesión, guards de ruta, cierre por inactividad |
 | `frontend/src/styles/` | CSS global y por módulo |
+| `supabase/functions/` | El backend real: Edge Functions, una por módulo |
 | `supabase/migrations/` | Historial de esquema — ver `docs/base-de-datos.md` |
 | `supabase/schema/` | Estado actual consolidado (generado, no se edita) |
 | `supabase/seeds/` | Datos demo, solo para desarrollo |
 | `docs/` | Documentación funcional y técnica |
 
-Falta el último paso de la separación: `frontend/src/lib/supabase/` se muda a
-`supabase/functions/` como Edge Functions, y el frontend pasa a llamarlas por
-HTTP en vez de consultar las tablas directamente.
+**¿Por qué `supabase/` y no `backend/`?** Ver `supabase/README.md` — se probó
+renombrarla y se descartó, el CLI la necesita con ese nombre exacto.
 
 ## Reglas
 
@@ -63,8 +65,7 @@ npm run db:push           # aplicar migraciones pendientes a Supabase
 npm run check:permisos    # alarma: funciones del backend sin chequeo de autorizacion
 ```
 
-Los comandos de `supabase` necesitan estar en la raíz del repositorio: el
-vínculo con el proyecto vive en `supabase/`, no en la carpeta padre.
+(los comandos `supabase` deben correrse desde la raíz del repo, no desde la carpeta padre)
 
 ## Antes de desplegar una Edge Function
 
@@ -94,3 +95,8 @@ respaldo si a alguien se le olvida.
 - `docs/base-de-datos.md` — esquema, módulos, estado de RLS y deudas conocidas
 - `docs/proceso-control-costos.md` — el flujo de negocio que implementa el ERP
 - `prompt-maestro-fases-proyecto.md` (raíz del proyecto padre) — roadmap por fases
+- `docs/prompt-rediseno-ux-ui.md` — rediseño UX/UI completo del ERP (Workday,
+  Oracle Fusion, NetSuite, SAP Fiori, Acumatica). **Deliberadamente NO
+  aplicado todavía** — es una fase futura, posterior a terminar de replicar
+  la estructura del video tutorial que se está siguiendo ahora. No usar como
+  guía de la UI actual.
